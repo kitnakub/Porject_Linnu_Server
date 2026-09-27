@@ -1,0 +1,1930 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>student-code-hub — Rice Desktop UI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --mint:#3ddc97;
+    --mint-dim:rgba(61,220,151,0.16);
+    --yellow:#f2c14e;
+    --green:#48c78e;
+    --red:#ef5b5b;
+    --blue:#5aa9ff;
+    --text:#eef4f1;
+    --text-dim:#93a39c;
+    --panel:rgba(10,16,15,0.82);
+    --panel-border:rgba(255,255,255,0.09);
+    --card:rgba(255,255,255,0.045);
+    --card-border:rgba(255,255,255,0.09);
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  html{scroll-padding-top:env(safe-area-inset-top,0px); scrollbar-width:none; -ms-overflow-style:none;}
+  html::-webkit-scrollbar, body::-webkit-scrollbar{display:none;}
+  *,*::before,*::after{box-sizing:inherit; margin:0; padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    color:var(--text);
+    min-height:100%;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+    zoom:1.25;
+    -webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(120% 50% at 50% 0%, rgba(255,182,120,0.18), transparent 60%),
+      linear-gradient(180deg,#0c1c22 0%, #163038 30%, #274a4f 55%, #3c5f57 72%, #4d6b57 100%);
+    background-attachment:fixed;
+  }
+  .mono{font-family:'JetBrains Mono',monospace;}
+  svg.i{display:block; flex:none;}
+  button{font:inherit; cursor:pointer;}
+
+  /* ---------------- top bar ---------------- */
+  .topbar{position:sticky; top:env(safe-area-inset-top,0%);z-index:50; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px; padding:12px 14px;}
+  .topbar-group{display:flex; gap:8px; flex-wrap:wrap;position: relative;}
+  .pill{display:flex; align-items:center; gap:8px; background:rgba(8,14,13,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:7px 10px; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); font-size:11.5px; color:var(--text-dim);}
+  .pill.tight{padding:6px 8px;}
+  .pill button.icon-btn{background:none; border:none; color:var(--text-dim); display:flex; align-items:center; padding:2px; position:relative;}
+  .ticker-pill{min-width:20px;}
+  .ticker-track{position:relative; height:3px; width:100%; background:rgba(255,255,255,0.12); border-radius:99px; margin-top:5px; overflow:hidden;}
+  .ticker-fill{position:absolute; inset:0; width:34%; background:var(--mint); border-radius:99px;}
+  .clock-num{font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--text); font-weight:600;}
+  .tray-badge{font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700; padding:5px 9px; border-radius:8px; background:rgba(255,255,255,0.06); color:var(--text-dim);}
+  .tray-badge.ok{background:var(--mint-dim); color:var(--mint);}
+  .notif-dot{position:absolute; top:0; right:0; width:7px; height:7px; border-radius:50%; background:var(--red); border:1.5px solid #0d1512;}
+
+  /* dropdowns for search / bell */
+  .dropdown{position:absolute; top:calc(100% + 8px); right:0; left: auto; width:280px; max-height:340px; overflow-y:auto; background:#0d1512; border:1px solid rgba(255,255,255,0.12); border-radius:14px; box-shadow:0 20px 50px rgba(0,0,0,0.5); z-index:120; display:none; padding:8px;}
+  .dropdown.open{display:block;}
+  .dropdown input{width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--card-border); border-radius:9px; padding:8px 10px; color:var(--text); font-size:12px; margin-bottom:8px; font-family:'Inter',sans-serif;}
+  .dd-item{display:block; width:100%; text-align:left; background:none; border:none; padding:8px 8px; border-radius:8px; color:var(--text); font-size:11.5px;}
+  .dd-item:hover{background:rgba(255,255,255,0.06);}
+  .dd-item .tt{font-family:'JetBrains Mono',monospace; font-weight:600; font-size:11.5px;}
+  .dd-item .ss{color:var(--text-dim); font-size:10.5px; margin-top:2px;}
+  .dd-empty{padding:14px 8px; text-align:center; color:var(--text-dim); font-size:11.5px;}
+
+  /* ---------------- role switcher ---------------- */
+  .role-switch{display:flex; justify-content:center; gap:6px; padding:6px 14px 20px;}
+  .role-switch button{font-family:'JetBrains Mono',monospace; font-size:11.5px; font-weight:600; color:var(--text-dim); background:rgba(8,14,13,0.5); border:1px solid rgba(255,255,255,0.08); padding:8px 16px; border-radius:100px;}
+  .role-switch button.active{background:var(--mint); color:#04120c; border-color:var(--mint);}
+
+  /* ---------------- main floating panel ---------------- */
+  .stage{display:flex; justify-content:center; padding:0 14px 60px;}
+  .panel{width:100%; max-width:1060px; background:var(--panel); border:1px solid var(--panel-border); border-radius:22px; backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px); box-shadow:0 20px 60px rgba(0,0,0,0.4); display:grid; grid-template-columns:190px 1fr; overflow:hidden;}
+  @media(max-width:680px){ .panel{grid-template-columns:1fr;} .sidebar{display:none;} .mobile-nav-toggle{display:flex;} }
+
+  .sidebar{padding:18px 12px; border-right:1px solid rgba(255,255,255,0.06); display:flex; flex-direction:column; gap:2px;}
+  .brand{display:flex; align-items:center; gap:10px; padding:6px 8px 20px;}
+  .brand .mark{width:32px; height:32px; border-radius:9px; background:var(--mint); display:flex; align-items:center; justify-content:center; color:#04120c; flex:none;}
+  .brand .brand-text{display:flex; flex-direction:column; gap:3px; line-height:1.2;}
+  .brand .name{font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; line-height:1.2;}
+  .brand .ver{font-size:10px; color:var(--text-dim); line-height:1.2;}
+  .nav-item{display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:9px; font-size:12.5px; color:var(--text-dim); border-left:2px solid transparent; background:none; border-top:none;border-right:none;border-bottom:none; width:100%; text-align:left;}
+  .nav-item.active{background:rgba(255,255,255,0.05); color:var(--text); border-left:2px solid var(--mint);}
+  .nav-item:hover{color:var(--text);}
+
+  /* mobile top nav toggle + drawer */
+  .mobile-nav-toggle{display:none; align-items:center; gap:8px; padding:10px 16px; border-bottom:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.02);}
+  .mobile-nav-toggle button{background:rgba(255,255,255,0.06); border:1px solid var(--card-border); color:var(--text); border-radius:9px; padding:7px 10px; display:flex; align-items:center; gap:6px; font-family:'JetBrains Mono',monospace; font-size:11.5px;}
+  .mobile-drawer-overlay{position:fixed; inset:0; background:rgba(4,8,7,0.65); z-index:150; display:none;}
+  .mobile-drawer-overlay.open{display:block;}
+  .mobile-drawer{position:fixed; top:0; left:0; bottom:0; width:78%; max-width:280px; background:#0d1512; border-right:1px solid rgba(255,255,255,0.1); z-index:160; transform:translateX(-100%); transition:transform .22s ease; padding:18px 12px; padding-top:calc(18px + env(safe-area-inset-top,0px)); display:flex; flex-direction:column; gap:2px;}
+  .mobile-drawer.open{transform:translateX(0);}
+
+  .content{padding:20px 24px 30px; min-width:0; max-height:78vh; overflow-y:auto; scrollbar-width:none; -ms-overflow-style:none;}
+  .content::-webkit-scrollbar{display:none;}
+  @media(max-width:680px){ .content{max-height:none;} }
+
+  .crumbs{display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:11px; color:var(--text-dim); margin-bottom:16px;}
+  .crumbs button{background:none; border:none; color:var(--text-dim); font-size:11px; font-family:'JetBrains Mono',monospace;}
+  .crumbs button:hover{color:var(--mint);}
+  .crumbs span.sep{color:rgba(255,255,255,0.25);}
+  .crumbs span.current{color:var(--text); font-family:'JetBrains Mono',monospace;}
+
+  .profile-card{background:rgba(255,255,255,0.035); border:1px solid var(--card-border); border-radius:16px; padding:16px 18px; display:flex; align-items:flex-start; gap:14px; margin-bottom:14px; flex-wrap:wrap;}
+  .avatar-lg{width:52px; height:52px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; font-weight:700; color:#04120c; font-family:'JetBrains Mono',monospace; font-size:15px;}
+  .profile-name{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px;}
+  .profile-handle{font-size:11.5px; color:var(--text-dim); margin:2px 0 10px;}
+  .fact-row{display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--text-dim); margin-top:5px;}
+  .fact-row svg{color:var(--mint);}
+
+  .bar{display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.03); border:1px solid var(--card-border); border-radius:12px; padding:11px 14px; margin-bottom:22px; font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-dim); overflow-x:auto; white-space:nowrap;}
+  .bar svg{color:var(--mint); flex:none;}
+  .bar .ext{margin-left:auto; color:var(--text-dim); flex:none;}
+  .bar.clickable{cursor:pointer;}
+  .bar.clickable:hover{background:rgba(255,255,255,0.055);}
+
+  .section-head{display:flex; align-items:center; gap:10px; margin-bottom:4px; flex-wrap:wrap; justify-content:space-between;}
+  .section-head h2{font-size:15px; font-weight:700;}
+  .section-sub{font-size:11.5px; color:var(--text-dim); margin-bottom:16px;}
+
+  .card-grid{display:grid; grid-template-columns:1fr 1fr;column-gap: 10px;row-gap: 20px;}
+  @media(max-width:480px){.card-grid{grid-template-columns:1fr;}}
+  .mod-card{display:flex; align-items:flex-start; gap:12px; background:var(--card); border:1px solid var(--card-border); border-radius:13px; padding:13px 14px; transition:background .15s ease, border-color .15s ease; text-align:left; width:100%; color:inherit;}
+  .mod-card:hover{background:rgba(255,255,255,0.075); border-color:rgba(255,255,255,0.18);}
+  .mod-icon{width:32px; height:32px; border-radius:9px; flex:none; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.06); color:var(--mint);}
+  .mod-title{font-family:'JetBrains Mono',monospace; font-size:12.5px; font-weight:700; color:var(--text);}
+  .mod-sub{font-size:11px; color:var(--text-dim); margin-top:3px; display:flex; align-items:center; gap:6px;}
+  .dotx{width:6px; height:6px; border-radius:50%; flex:none;}
+  .dot-yellow{background:var(--yellow);} .dot-green{background:var(--green);} .dot-red{background:var(--red);} .dot-blue{background:var(--blue);}
+
+  .fm-grid{position:relative;display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:14px 10px;align-items:start;user-select:none;-webkit-user-select:none;}
+  .fm-tile{min-width:0;min-height:112px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;padding:12px 7px 10px;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--text);text-align:center;cursor:pointer;user-select:none;transition:background .14s,border-color .14s,transform .14s;}
+  .fm-tile:hover,.fm-tile:focus-visible{background:rgba(255,255,255,.055);border-color:rgba(255,255,255,.1);outline:none;}
+  .fm-tile:active{transform:scale(.98);}
+  .fm-tile.selected{background:rgba(61,220,151,.11);border-color:rgba(61,220,151,.34);}.fm-tile.mf-drop-folder.drop-target{background:rgba(61,220,151,.2);border-color:var(--mint);box-shadow:0 0 0 2px rgba(61,220,151,.2);}.mf-marquee{position:absolute;z-index:5;display:none;pointer-events:none;border:1px solid var(--mint);background:rgba(61,220,151,.14);border-radius:4px;}
+  .fm-name{max-width:100%;font-size:11.5px;line-height:1.35;overflow-wrap:anywhere;}
+  .unix-meta{max-width:100%;font:9px/1.35 'JetBrains Mono',monospace;color:var(--text-dim);overflow-wrap:anywhere;}
+  .fm-folder-art{width:68px;height:58px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 7px 9px rgba(0,0,0,.26));}
+  .fm-folder-art svg{width:68px;height:58px;display:block;}
+  .fm-file-art{width:62px;height:58px;display:flex;align-items:center;justify-content:center;color:var(--mint);border-radius:12px;background:linear-gradient(145deg,rgba(61,220,151,.19),rgba(61,220,151,.055));border:1px solid rgba(61,220,151,.2);}
+  .fm-file-art svg{width:28px;height:28px;}
+  .fm-user-art{width:58px;height:58px;border-radius:18px;display:flex;align-items:center;justify-content:center;color:var(--mint);background:linear-gradient(145deg,rgba(61,220,151,.22),rgba(61,220,151,.06));border:1px solid rgba(61,220,151,.22);}
+  .fm-user-art svg{width:25px;height:25px;}
+  .fm-context-menu{position:fixed;z-index:400;min-width:178px;padding:5px;background:#101a17;border:1px solid rgba(255,255,255,.13);border-radius:10px;box-shadow:0 14px 38px rgba(0,0,0,.48);display:none;}
+  .fm-context-menu.open{display:block;}
+  .fm-context-menu button{width:100%;display:flex;align-items:center;gap:9px;padding:9px 10px;border:0;border-radius:7px;background:transparent;color:var(--text);font-size:12px;text-align:left;}
+  .fm-context-menu button:hover{background:rgba(255,255,255,.08);}
+  .fm-context-menu button.danger{color:var(--red);}
+  @media(max-width:560px){.fm-grid{grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px 5px;}.fm-tile{min-height:98px;padding:9px 4px;}.fm-folder-art{width:58px;height:50px;}.fm-folder-art svg{width:58px;height:50px;}.fm-name{font-size:10.5px;}}
+
+  /* generic search result rows */
+  .row-list{display:flex; flex-direction:column; gap:10px;}
+  .row-card{display:flex; align-items:center; gap:14px; background:var(--card); border:1px solid var(--card-border); border-radius:14px; padding:14px 16px; width:100%; text-align:left; color:inherit; cursor:pointer;}
+  .row-card:hover{background:rgba(255,255,255,0.075); border-color:rgba(255,255,255,0.18);}
+  .row-badge{width:38px; height:38px; border-radius:11px; flex:none; display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:12px; color:#04120c;}
+  .row-title{font-weight:600; font-size:13.5px; display:flex; align-items:center; gap:6px;}
+  .row-sub{font-size:11.5px; color:var(--text-dim); margin-top:2px;}
+  .row-meta{margin-left:auto; display:flex; gap:14px; flex:none;}
+  .row-meta .m{text-align:right;}
+  .row-meta .m b{display:block; font-family:'JetBrains Mono',monospace; font-size:13px;}
+  .row-meta .m span{font-size:9.5px; color:var(--text-dim);}
+  .row-chevron{color:var(--text-dim); flex:none;}
+
+  /* linux-desktop-style file action buttons (rename / delete) */
+  .file-action-btn{width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09); color:var(--text-dim); flex:none; transition:background .15s ease, color .15s ease, border-color .15s ease;}
+  .file-action-btn:hover{background:rgba(255,255,255,0.16); color:var(--text); border-color:rgba(255,255,255,0.24);}
+  .file-action-btn.danger:hover{background:rgba(239,91,91,0.16); color:var(--red); border-color:rgba(239,91,91,0.38);}
+
+  /* navigation and read-only notices */
+  .back-link{display:inline-flex; align-items:center; gap:6px; font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-dim); background:none; border:none; margin-bottom:14px; padding:4px 0;}
+  .back-link:hover{color:var(--mint);}
+  .readonly-note{display:flex; align-items:center; gap:7px; font-size:11px; color:var(--text-dim); background:rgba(255,255,255,0.03); border:1px dashed rgba(255,255,255,0.16); border-radius:10px; padding:9px 12px; margin-top:10px;}
+  .readonly-note svg{color:var(--yellow); flex:none;}
+
+  .empty-note{font-size:12px; color:var(--text-dim); padding:14px; border:1px dashed rgba(255,255,255,0.14); border-radius:12px; text-align:center;}
+
+  /* filter chips */
+  .chips{display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;}
+  .chip-btn{font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:600; color:var(--text-dim); background:rgba(255,255,255,0.04); border:1px solid var(--card-border); padding:6px 11px; border-radius:99px;}
+  .chip-btn.active{background:rgba(255,255,255,0.14); color:var(--text);}
+
+  .stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px;}
+  @media(max-width:640px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
+  .stat-box{background:var(--card); border:1px solid var(--card-border); border-radius:13px; padding:13px 14px;}
+  .stat-box .n{font-family:'JetBrains Mono',monospace; font-size:19px; font-weight:700;}
+  .stat-box .l{font-size:10.5px; color:var(--text-dim); margin-top:3px;}
+
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:11px; color:var(--text-dim); margin-bottom:6px; font-family:'JetBrains Mono',monospace;}
+  .field input[type=text],.field input[type=email],.field input[type=file],.field select{width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--card-border); border-radius:9px; padding:9px 12px; color:var(--text); font-size:12.5px; font-family:'Inter',sans-serif;}
+  .field textarea{width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--card-border); border-radius:9px; padding:9px 12px; color:var(--text); font-size:12px; font-family:'JetBrains Mono',monospace; line-height:1.6; resize:vertical; min-height:180px;}
+  .hint-note{display:flex; align-items:flex-start; gap:7px; font-size:11px; color:var(--yellow); background:rgba(242,193,78,0.08); border:1px dashed rgba(242,193,78,0.35); border-radius:10px; padding:9px 12px; margin-bottom:14px;}
+  .hint-note svg{color:var(--yellow); flex:none; margin-top:1px;}
+  .switch-row{display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; margin-bottom:10px;}
+  .switch-row .l{font-size:12.5px;} .switch-row .s{font-size:11px; color:var(--text-dim); margin-top:2px;}
+  .toggle{width:38px; height:22px; border-radius:99px; background:rgba(255,255,255,0.12); position:relative; border:none; flex:none;}
+  .toggle.on{background:var(--mint);}
+  .toggle .knob{position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:#0d1512; transition:left .15s ease;}
+  .toggle.on .knob{left:18px; background:#04120c;}
+
+
+  /* ---------------- modal ---------------- */
+  .modal-overlay{position:fixed; inset:0; z-index:200; background:rgba(4,8,7,0.7); display:none; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(4px);}
+  .modal-overlay.open{display:flex;}
+  .modal{width:100%; max-width:620px; max-height:82vh; background:#0d1512; border:1px solid rgba(255,255,255,0.1); border-radius:18px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 30px 80px rgba(0,0,0,0.55);}
+  .modal-head{display:flex; align-items:center; gap:12px; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,0.08);}
+  .modal-title{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:13.5px;}
+  .modal-meta{font-size:11px; color:var(--text-dim); margin-top:2px;}
+  .modal-close{margin-left:auto; background:none; border:none; color:var(--text-dim);}
+  .modal-body{padding:16px 18px; overflow:auto; flex:1;}
+  .code-box{font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.8; background:rgba(255,255,255,0.03); border-radius:10px; padding:12px 14px; color:#d8e8e0; overflow-x:auto;}
+  .code-box .ln{color:rgba(255,255,255,0.28); display:inline-block; width:20px; user-select:none;}
+  .kw{color:#f2a6a6;} .fn{color:#8fd3ff;} .st{color:#bfe8bf;} .cm{color:#7f948d;}
+  .log-line{font-family:'JetBrains Mono',monospace; font-size:11.5px; padding:7px 0; border-bottom:1px dashed rgba(255,255,255,0.06); display:flex; gap:10px; align-items:flex-start;}
+  .log-line:last-child{border-bottom:none;}
+  .log-ok{color:var(--green);} .log-warn{color:var(--yellow);} .log-err{color:var(--red);}
+  .list-item{padding:9px 0; border-bottom:1px dashed rgba(255,255,255,0.06); font-size:12px;}
+  .list-item:last-child{border-bottom:none;}
+  .list-item .t{font-weight:600; font-family:'JetBrains Mono',monospace;}
+  .list-item .s{color:var(--text-dim); font-size:11px; margin-top:2px;}
+  button.list-item{width:100%; text-align:left; background:none; border:none; color:inherit; border-bottom:1px dashed rgba(255,255,255,0.06); border-radius:8px;}
+  button.list-item:hover{background:rgba(255,255,255,0.05);}
+  .modal-foot{display:flex; gap:10px; padding:14px 18px; border-top:1px solid rgba(255,255,255,0.08); flex-wrap:wrap;}
+  .btn{font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; padding:9px 15px; border-radius:9px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.04); color:var(--text);}
+  .btn.primary{background:var(--mint); color:#04120c; border-color:var(--mint);}
+  .btn.danger{background:rgba(239,91,91,0.12); color:var(--red); border-color:rgba(239,91,91,0.3);}
+  .btn.ghost{margin-left:auto; background:none;}
+  .toast{position:fixed; bottom:calc(18px + env(safe-area-inset-bottom,0px)); left:50%; transform:translateX(-50%); background:#0d1512; border:1px solid var(--mint); color:var(--mint); font-family:'JetBrains Mono',monospace; font-size:12px; padding:10px 18px; border-radius:10px; z-index:300; opacity:0; pointer-events:none; transition:opacity .25s ease; max-width:88vw; text-align:center;}
+  .toast.show{opacity:1;}
+  @media(max-width:680px){body{zoom:1;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="pill ticker-pill">
+    <button class="icon-btn" id="tickerPlay"></button>
+    <div style="flex:1; min-width:0;">
+      <div class="mono" style="font-size:11px; color:var(--text);" id="tickerLabel">backup.sh — สำรองข้อมูลประจำวัน</div>
+      <div class="ticker-track"><div class="ticker-fill" id="tickerFill"></div></div>
+    </div>
+  </div>
+  <div class="topbar-group">
+    <div class="pill" id="clockPill"></div>
+    <div class="pill tight">
+      <span class="tray-badge">EN</span>
+      <span class="tray-badge ok">Git ✓</span>
+      <span class="tray-badge ok">SSH ✓</span>
+      <span class="tray-badge">71%</span>
+      <span class="tray-badge">99.9%</span>
+    </div>
+  </div>
+</div>
+
+<div class="role-switch" id="roleSwitch"></div>
+
+<div class="mobile-nav-toggle" id="mobileNavToggle"></div>
+
+<div class="stage"><div class="panel" id="panelRoot"></div></div>
+
+<div class="mobile-drawer-overlay" id="mobileDrawerOverlay"></div>
+<div class="mobile-drawer" id="mobileDrawer"></div>
+
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="mod-icon" id="modalIcon"></div>
+      <div><div class="modal-title" id="modalTitle">—</div><div class="modal-meta" id="modalMeta">—</div></div>
+      <button type="button" class="modal-close" id="modalCloseBtn" aria-label="ปิด"></button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<div class="fm-context-menu" id="fmContextMenu" role="menu"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= icon library ================= */
+const ICON_PATHS = {
+  home:'<path d="M4 11L12 4l8 7"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/>',
+  book:'<path d="M4 5h7a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4z"/><path d="M20 5h-7a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h7z"/>',
+  code:'<polyline points="9 8 5 12 9 16"/><polyline points="15 8 19 12 15 16"/>',
+  shield:'<path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><polyline points="9 12 11 14 15 10"/>',
+  share:'<circle cx="6" cy="12" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><line x1="8" y1="11" x2="16" y2="7"/><line x1="8" y1="13" x2="16" y2="17"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14 3h-4l-.6 2.5a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.3-.9a7 7 0 0 0 2 1.2L10 21h4l.6-2.5a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.6c.06-.4.1-.8.1-1.2z"/>',
+  users:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14c2.5.3 4.5 2.4 4.5 5"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/>',
+  server:'<rect x="4" y="4" width="16" height="6" rx="1.5"/><rect x="4" y="14" width="16" height="6" rx="1.5"/><circle cx="8" cy="7" r="0.8" fill="currentColor" stroke="none"/><circle cx="8" cy="17" r="0.8" fill="currentColor" stroke="none"/>',
+  database:'<ellipse cx="12" cy="6" rx="7" ry="2.6"/><path d="M5 6v6c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6V6"/><path d="M5 12v6c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-6"/>',
+  archive:'<rect x="3.5" y="4" width="17" height="4" rx="1"/><path d="M5 8v10a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 18V8"/><line x1="10" y1="12" x2="14" y2="12"/>',
+  clipboard:'<rect x="6" y="4" width="12" height="16" rx="1.5"/><rect x="9" y="2.5" width="6" height="3" rx="1"/><line x1="8.5" y1="10" x2="15.5" y2="10"/><line x1="8.5" y1="13.5" x2="15.5" y2="13.5"/><line x1="8.5" y1="17" x2="13" y2="17"/>',
+  file:'<path d="M7 2.5h7l4 4V21a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1z"/><polyline points="14 2.5 14 6.5 18 6.5"/>',
+  search:'<circle cx="11" cy="11" r="6.5"/><line x1="16" y1="16" x2="20.5" y2="20.5"/>',
+  bell:'<path d="M6 10a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 19a2 2 0 0 0 4 0"/>',
+  play:'<polygon points="6,4 20,12 6,20"/>',
+  pause:'<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>',
+  external:'<path d="M14 4h6v6"/><line x1="20" y1="4" x2="11" y2="13"/><path d="M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6"/>',
+  check:'<polyline points="4 12 9 17 20 6"/>',
+  alert:'<path d="M12 3l10 18H2L12 3z"/><line x1="12" y1="10" x2="12" y2="14"/><circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none"/>',
+  x:'<line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/>',
+  chevUp:'<polyline points="5 15 12 8 19 15"/>',
+  chevDown:'<polyline points="5 9 12 16 19 9"/>',
+  chevRight:'<polyline points="9 6 15 12 9 18"/>',
+  download:'<path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><path d="M5 20h14"/>',
+  menu:'<line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/>',
+  upload:'<path d="M12 21V9"/><polyline points="7 13 12 8 17 13"/><path d="M5 4h14"/>',
+  folder:'<path d="M4 6.5a1.5 1.5 0 0 1 1.5-1.5h4l2 2h7A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5z"/>',
+  folderPlus:'<path d="M4 6.5a1.5 1.5 0 0 1 1.5-1.5h4l2 2h7A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5z"/><line x1="12" y1="10.5" x2="12" y2="15.5"/><line x1="9.5" y1="13" x2="14.5" y2="13"/>',
+  chevLeft:'<polyline points="15 6 9 12 15 18"/>',
+  lock:'<rect x="5" y="10.5" width="14" height="9.5" rx="1.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>',
+  edit:'<path d="M4 20h4L18 10a2.83 2.83 0 0 0-4-4L4 16v4z"/><line x1="13.5" y1="6.5" x2="17.5" y2="10.5"/>',
+  trash:'<path d="M5 7h14"/><path d="M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/><path d="M6.5 7l1 12a1.5 1.5 0 0 0 1.5 1.4h6a1.5 1.5 0 0 0 1.5-1.4l1-12"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
+  image:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><polyline points="21 15 15 9 5 19"/>'
+};
+function icon(name, size){ size = size || 16; return '<svg class="i" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+(ICON_PATHS[name]||'')+'</svg>'; }
+function escapeHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+const LOG_LINES = [
+  {tag:'ok', text:'03:00:11  backup.sh สำรอง /srv/student-code-hub สำเร็จ (4.2 GB)'},
+  {tag:'warn', text:'02:45:02  system_monitor.sh: พื้นที่ /srv เหลือต่ำกว่า 100 GB'},
+  {tag:'ok', text:'01:12:40  user_setup.sh สร้างผู้ใช้ cs6711201 และกำหนดสิทธิ์แล้ว'},
+  {tag:'err', text:'00:58:19  permission denied — cs6711147 พยายามเข้าถึง repo ของผู้อื่น'},
+  {tag:'ok', text:'00:00:03  log_report.sh สร้างรายงานประจำวันแล้ว'},
+  {tag:'ok', text:'23:41:09  git push รับ commit จาก cs6711022 สำเร็จ'},
+  {tag:'warn', text:'22:15:37  system_monitor.sh: การใช้งาน memory สูงกว่าปกติชั่วคราว'}
+];
+const SHELL_SCRIPTS = [
+  {t:'user_setup.sh', s:'สร้างผู้ใช้ กำหนด owner/permission · on-demand'},
+  {t:'backup.sh', s:'สำรอง repository + ตรวจ sha256 · 0 3 * * *'},
+  {t:'system_monitor.sh', s:'ตรวจ disk / memory / process · */30 * * * *'},
+  {t:'log_report.sh', s:'สรุป success/failed รายวัน · 0 0 * * *'}
+];
+const STORAGE_LAYER = [
+  {t:'/srv/student-code-hub/repositories', s:'52 GB'},
+  {t:'/srv/student-code-hub/uploads', s:'18 GB'},
+  {t:'/srv/student-code-hub/verified', s:'6 GB'},
+  {t:'/srv/backup/repository-backups', s:'137 GB'}
+];
+const USERS = [
+  {t:'cs6711085', s:'student'},
+  {t:'cs6711022', s:'student'},
+  {t:'cs6711099', s:'student'},
+  {t:'cs6711031', s:'student'},
+  {t:'cs6711201', s:'student', demo:true},
+  {t:'cs6711147', s:'student', demo:true},
+  {t:'admin02', s:'admin'}
+];
+
+/* ================= role configuration ================= */
+const ROLES = {
+  student:{
+    label:'นักศึกษา', profileBg:'#3ddc97', name:'cs6711085', handle:'@cs6711085',
+    facts:[['server','Ubuntu 24.04 LTS · Gitea SSH']],
+    bar:{icon:'external', text:'git clone ssh://git@server/student-code-hub/cs6711085.git'},
+    sidebar:[['home','home','ภาพรวม'],['book','myFolder','My Folder'],['users','people','ผู้ใช้อื่น'],['share','shared','Shared'],['gear','settings','ตั้งค่า']]
+  },
+  admin:{
+    label:'ผู้ดูแลระบบ', profileBg:'#ffc4a8', name:'admin02', handle:'ผู้ดูแลระบบ · student-code-hub',
+    facts:[],
+    bar:{icon:'server', text:'ubuntu-server-01 · uptime 39d 4h · load 24%'},
+    sidebar:[['home','home','ภาพรวม'],['users','users','ผู้ใช้'],['server','server','Server'],['archive','backup','Backup'],['clipboard','log','Log']]
+  }
+};
+
+
+let state = {role:'student', view:'myFolder'};
+let logFilter = 'all';
+let userSearchQuery = '';
+let userListExpanded = false;
+let adminFilesUser = null;
+let adminFilesTree = null;
+let adminFilesPathIds = ['admin_root'];
+let userPermissionRestrictions = Object.create(null);
+function activeUserRestrictions(){
+  return state.role==='student'?(userPermissionRestrictions[ROLES.student.name]||[]):[];
+}
+function isCurrentUserRestricted(permission){ return activeUserRestrictions().includes(permission); }
+function canCurrentUserRead(){ return state.role==='admin'||!isCurrentUserRestricted('r'); }
+function canCurrentUserWrite(){ return state.role==='admin'||!isCurrentUserRestricted('w'); }
+function requireCurrentUserPermission(permission){
+  if(state.role!=='student'||!isCurrentUserRestricted(permission)) return true;
+  const labels={r:'อ่านข้อมูล',w:'เขียนข้อมูล',x:'รันไฟล์'};
+  showToast('บัญชีนี้ถูกระงับสิทธิ์'+(labels[permission]||permission));
+  return false;
+}
+
+/* ================= My Folder (personal file system for the student role) ================= */
+let myFolderTree = {id:'mf_root', name:'My Folder', owner:ROLES.student.name, type:'folder', children:[]};
+let userFolderTrees = Object.create(null);
+const DEMO_USER_SEEDS=[
+  {username:'cs6711201',folder:'งาน Python',files:[['hello.py','print("Hello, student!")'],['notes.md','# งาน Python\nทดลองเขียนโปรแกรมเบื้องต้น']]},
+  {username:'cs6711147',folder:'โปรเจกต์คำนวณ',files:[['calculator.cpp','#include <iostream>\nint main(){ return 0; }'],['README.md','# Calculator\nไฟล์ตัวอย่างสำหรับทดสอบ']]}
+];
+function seedDemoUsers(){
+  DEMO_USER_SEEDS.forEach(seed=>{
+    const existing=userFolderTrees[seed.username];
+    if(existing&&(existing.children||[]).length) return;
+    userFolderTrees[seed.username]={id:'mf_root_'+seed.username,name:'My Folder',owner:seed.username,type:'folder',children:[{
+      id:'demo_folder_'+seed.username,name:seed.folder,type:'folder',perm:'copy',children:seed.files.map(([name,content],index)=>({
+        id:'demo_file_'+seed.username+'_'+index,name,type:'file',content,perm:'copy'
+      }))
+    }]};
+  });
+}
+let myFolderPathIds = ['mf_root'];
+let studentHomeRoot = false;
+let homeDirectoryTree = {id:'home_root', name:'/home/'+ROLES.student.name, owner:ROLES.student.name, type:'folder', children:[]};
+let folderClipboard = null;
+let mfOpenTimer = null;
+function mfFind(node, id){
+  if(node.id===id) return node;
+  if(node.children){ for(const c of node.children){ const r=mfFind(c,id); if(r) return r; } }
+  return null;
+}
+function mfCurrentFolder(){ return mfFind(myFolderTree, myFolderPathIds[myFolderPathIds.length-1]); }
+function folderTreeForUser(username){
+  if(username===ROLES.student.name) return myFolderTree;
+  if(!userFolderTrees[username]) userFolderTrees[username]={id:'mf_root_'+username,name:'My Folder',owner:username,type:'folder',children:[]};
+  userFolderTrees[username].owner=username;
+  return userFolderTrees[username];
+}
+function cloneFolderNode(node){
+  return JSON.parse(JSON.stringify(node));
+}
+function rekeyFolderNode(node,prefix){
+  node.id=prefix+Date.now()+Math.floor(Math.random()*1000000);
+  (node.children||[]).forEach(child=>rekeyFolderNode(child,prefix));
+  return node;
+}
+function copyFolderNode(node){
+  if(!node) return;
+  if(!canCurrentUserRead()){ showToast('บัญชีนี้ถูกระงับสิทธิ์อ่าน จึงคัดลอกข้อมูลไม่ได้'); return; }
+  folderClipboard=cloneFolderNode(node);
+  showToast('คัดลอก "'+node.name+'" แล้ว'+(canCurrentUserWrite()?'':' · ระงับ w จึงวางลง My Folder ไม่ได้'));
+}
+function copyFolderNodes(nodes){
+  if(!nodes||!nodes.length) return;
+  if(!canCurrentUserRead()){ showToast('บัญชีนี้ถูกระงับสิทธิ์อ่าน จึงคัดลอกข้อมูลไม่ได้'); return; }
+  folderClipboard=nodes.map(cloneFolderNode);
+  showToast((nodes.length===1?'คัดลอก "'+nodes[0].name+'" แล้ว':'คัดลอก '+nodes.length+' รายการแล้ว')+(canCurrentUserWrite()?'':' · ระงับ w จึงวางลง My Folder ไม่ได้'));
+}
+function folderClipboardItems(){
+  if(!folderClipboard) return [];
+  return Array.isArray(folderClipboard)?folderClipboard:[folderClipboard];
+}
+
+function sharedTreeByOwner(owner){
+  if(owner===ROLES.student.name) return myFolderTree;
+  if(userFolderTrees[owner]) return userFolderTrees[owner];
+  return homeDirectoryTree;
+}
+function showStudentSharedNodeContextMenu(event,owner,id){
+  event.preventDefault();
+  event.stopPropagation();
+  const tree=sharedTreeByOwner(owner);
+  const node=mfFind(tree,id);
+  if(node) showFmContextMenu(event,[{label:'Copy',icon:'download',run:()=>copyFolderNode(node)}]);
+}
+function uniqueFolderName(parent,name){
+  const taken=child=>parent.children.some(item=>item.name.toLowerCase()===child.toLowerCase());
+  if(!taken(name)) return name;
+  const dot=name.lastIndexOf('.');
+  const stem=dot>0?name.slice(0,dot):name;
+  const ext=dot>0?name.slice(dot):'';
+  let i=2, next=stem+'_'+i+ext;
+  while(taken(next)){ i++; next=stem+'_'+i+ext; }
+  return next;
+}
+const IMAGE_EXTS = ['png','jpg','jpeg','gif','svg','webp','bmp'];
+function mfIconFor(node){
+  if(node.type==='folder') return {ic:'folder', col:'var(--mint)'};
+  const ext=(node.name.split('.').pop()||'').toLowerCase();
+  const map={
+    cpp:{ic:'code',col:'#5aa9ff'}, c:{ic:'code',col:'#5aa9ff'}, h:{ic:'code',col:'#5aa9ff'},
+    py:{ic:'code',col:'#f2c14e'}, js:{ic:'code',col:'#f2c14e'}, ts:{ic:'code',col:'#f2c14e'},
+    java:{ic:'code',col:'#ef5b5b'},
+    md:{ic:'book',col:'#8fe3c8'}, txt:{ic:'file',col:'#93a39c'},
+    png:{ic:'image',col:'#c9a6ff'}, jpg:{ic:'image',col:'#c9a6ff'}, jpeg:{ic:'image',col:'#c9a6ff'}, gif:{ic:'image',col:'#c9a6ff'}, svg:{ic:'image',col:'#c9a6ff'}, webp:{ic:'image',col:'#c9a6ff'}, bmp:{ic:'image',col:'#c9a6ff'},
+    zip:{ic:'archive',col:'#ffc4a8'}, rar:{ic:'archive',col:'#ffc4a8'}, tar:{ic:'archive',col:'#ffc4a8'},
+    pdf:{ic:'file',col:'#ef5b5b'}
+  };
+  return map[ext] || {ic:'file',col:'#93a39c'};
+}
+function mfFolderArt(){
+  return '<div class="fm-folder-art" aria-hidden="true"><svg viewBox="0 0 80 66" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="mfFolderGrad" x1="9" y1="5" x2="68" y2="62" gradientUnits="userSpaceOnUse"><stop stop-color="#86f0bf"/><stop offset="1" stop-color="#25bd7d"/></linearGradient></defs><path d="M8 16.5A7.5 7.5 0 0 1 15.5 9H31l8 8h25.5A7.5 7.5 0 0 1 72 24.5v28a7.5 7.5 0 0 1-7.5 7.5h-49A7.5 7.5 0 0 1 8 52.5v-36Z" fill="url(#mfFolderGrad)"/><path d="M8 25h64v27.5a7.5 7.5 0 0 1-7.5 7.5h-49A7.5 7.5 0 0 1 8 52.5V25Z" fill="#49d99a"/><path d="M9 25h62" stroke="white" stroke-opacity=".22" stroke-width="1.5"/></svg></div>';
+}
+function mfFileArt(node){
+  const {ic,col}=mfIconFor(node);
+  return '<div class="fm-file-art" style="color:'+col+'" aria-hidden="true">'+icon(ic,26)+'</div>';
+}
+let mfQuery='';
+function mfPermLabel(n){
+  const p=n.perm||'private';
+  return {private:['ส่วนตัว','var(--text-dim)'], view:['เพื่อนดูได้','var(--yellow)'], copy:['คัดลอกได้','var(--mint)']}[p];
+}
+function unixGroupForUser(username){
+  const user=USERS.find(item=>item.t===username);
+  return user&&user.s==='admin'?'admins':'students';
+}
+function unixModeForUser(username){
+  const user=USERS.find(item=>item.t===username);
+  const mode=String(user&&user.s==='admin'?'700':'744').split('').map(d=>parseInt(d,8)||0);
+  const restricted=userPermissionRestrictions[username]||[];
+  const ownerBits={r:4,w:2,x:1};
+  restricted.forEach(permission=>{ if(ownerBits[permission]) mode[0]&=~ownerBits[permission]; });
+  return mode.map(d=>d.toString(8)).join('');
+}
+function unixModeForNode(node){
+  const mode=String(node&&node.mode!=null?node.mode:(node&&node.type==='folder'?'700':'600')).replace(/[^0-7]/g,'');
+  return mode.padStart(3,'0').slice(-3);
+}
+function unixSymbolicMode(mode){
+  return String(mode).split('').map(d=>{
+    const n=parseInt(d,8)||0;
+    return (n&4?'r':'-')+(n&2?'w':'-')+(n&1?'x':'-');
+  }).join('');
+}
+function unixModeDisplayForUser(username){
+  return unixSymbolicMode(unixModeForUser(username)).match(/.{3}/g).join(' ');
+}
+function unixMetaHtml(node,owner){
+  if(state.role!=='admin') return '';
+  const mode=unixModeForNode(node), identity=(owner||ROLES.student.name)+':'+unixGroupForUser(owner||ROLES.student.name);
+  const share=node&&node.perm==='copy'?' · share ACL: read+copy':node&&node.perm==='view'?' · share ACL: read':'';
+  return '<span class="unix-meta" title="Unix mode: '+mode+' '+unixSymbolicMode(mode)+'; owner:group '+escapeHtml(identity)+(share?'; '+share.slice(3):'')+'">'+mode+' '+unixSymbolicMode(mode)+' · '+escapeHtml(identity)+share+'</span>';
+}
+function mfWalk(node, trail, out){
+  (node.children||[]).forEach(c=>{
+    out.push({node:c, trail:trail});
+    if(c.type==='folder') mfWalk(c, trail.concat(c.id), out);
+  });
+}
+function setMfQuery(v){
+  mfQuery=v; renderContent();
+  const inp=document.querySelector('#body .field input');
+  if(inp){ inp.focus(); inp.setSelectionRange(v.length,v.length); }
+}
+function mfOpenFromSearch(id, trailStr){
+  const trail=trailStr.split(',');
+  const n=mfFind(myFolderTree,id);
+  if(!n) return;
+  mfQuery='';
+  if(n.type==='folder'){ if(!requireCurrentUserPermission('x')) return; myFolderPathIds=trail.concat(id); renderContent(); }
+  else { myFolderPathIds=trail; renderContent(); mfOpenFileViewer(n); }
+}
+function openStudentHomeNode(id){
+  if(id==='admin_myfolder'){
+    if(!requireCurrentUserPermission('x')) return;
+    myFolderPathIds=['mf_root'];
+    studentHomeRoot=false;
+    renderContent();
+  }
+}
+function renderStudentHomeDirectory(){
+  const tree=buildAdminUserTree(ROLES.student.name);
+  const items=(tree.children||[]).filter(node=>node.id==='admin_myfolder');
+  const tiles=items.length?'<div class="fm-grid" oncontextmenu="showStudentHomeBlankContextMenu(event)">'+items.map(node=>
+    '<button type="button" class="fm-tile" ondblclick="openStudentHomeNode(\''+node.id+'\')" oncontextmenu="showMyFolderRootContextMenu(event)">'+
+      (node.type==='folder'?mfFolderArt():mfFileArt(node))+'<span class="fm-name">'+escapeHtml(node.name)+'</span></button>'
+  ).join('')+'</div>':'<div class="empty-note" oncontextmenu="showStudentHomeBlankContextMenu(event)">Home Directory ยังไม่มีรายการ</div>';
+  return '<div oncontextmenu="showStudentHomeBlankContextMenu(event)"><div class="section-head"><h2>Home Directory</h2></div>'
+    +'<div class="section-sub">/home/'+escapeHtml(ROLES.student.name)+'/ · ดับเบิลคลิกโฟลเดอร์เพื่อเปิด</div>'+tiles+'</div>';
+}
+function showStudentHomeBlankContextMenu(event){
+  if(event.target.closest('input,textarea,button,.fm-context-menu')) return;
+  const actions=[
+    {label:'สร้างโฟลเดอร์',icon:'folderPlus',run:()=>mfCreateFolder()},
+    {label:'สร้างไฟล์',icon:'file',run:()=>mfCreateFile()}
+  ];
+  if(folderClipboard) actions.push({label:'Paste',icon:'download',run:()=>pasteIntoMyFolder()});
+  showFmContextMenu(event,actions);
+}
+function homeFindParent(id){
+  return (homeDirectoryTree.children||[]).some(child=>child.id===id)?homeDirectoryTree:null;
+}
+function homeApplyPerm(node,value){
+  node.perm=value;
+  (node.children||[]).forEach(child=>homeApplyPerm(child,value));
+}
+function openHomePermModal(id){
+  const node=mfFind(homeDirectoryTree,id); if(!node) return;
+  const cur=node.perm||'private';
+  const opts=[['private','ส่วนตัว','เฉพาะฉันเท่านั้น'],['view','เพื่อนดูได้อย่างเดียว','เพื่อนเปิดอ่านได้ แต่คัดลอกไม่ได้'],['copy','เพื่อนดูและคัดลอกได้','เพื่อนคัดลอกได้']];
+  document.getElementById('modalTitle').textContent='ตั้งค่าสิทธิ์';
+  document.getElementById('modalMeta').textContent=node.name;
+  document.getElementById('modalIcon').innerHTML=icon('lock',16);
+  document.getElementById('modalBody').innerHTML=opts.map(o=>
+    '<label style="display:flex;align-items:flex-start;gap:10px;padding:10px 4px;cursor:pointer;"><input type="radio" name="homePerm" value="'+o[0]+'"'+(cur===o[0]?' checked':'')+'><span><b>'+o[1]+'</b><span style="display:block;color:var(--text-dim);font-size:11px;">'+o[2]+'</span></span></label>').join('')
+    +(node.type==='folder'?'<div class="hint-note" style="margin-top:10px;">'+icon('alert',14)+'<span>สิทธิ์นี้จะมีผลกับรายการทั้งหมดข้างในด้วย</span></div>':'');
+  document.getElementById('modalFoot').innerHTML='<button class="btn primary" onclick="saveHomePerm(\''+id+'\')">'+icon('check',14)+' บันทึก</button><button class="btn ghost" onclick="closeModal()">ยกเลิก</button>';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function saveHomePerm(id){
+  if(!requireCurrentUserPermission('w')) return;
+  const node=mfFind(homeDirectoryTree,id);
+  const selected=document.querySelector('input[name="homePerm"]:checked');
+  if(node&&selected){ homeApplyPerm(node,selected.value); closeModal(); renderContent(); showToast('บันทึกสิทธิ์ของ "'+node.name+'" แล้ว'); }
+}
+function openHomeRenameModal(id){
+  const node=mfFind(homeDirectoryTree,id); if(!node) return;
+  document.getElementById('modalTitle').textContent='เปลี่ยนชื่อ';
+  document.getElementById('modalMeta').textContent=node.name;
+  document.getElementById('modalIcon').innerHTML=icon('edit',16);
+  document.getElementById('modalBody').innerHTML='<div class="field"><label for="homeRenameName">ชื่อใหม่</label><input type="text" id="homeRenameName" value="'+escapeHtml(node.name)+'"></div>';
+  document.getElementById('modalFoot').innerHTML='<button class="btn primary" onclick="saveHomeRename(\''+id+'\')">'+icon('check',14)+' บันทึก</button><button class="btn ghost" onclick="closeModal()">ยกเลิก</button>';
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(()=>{ const input=document.getElementById('homeRenameName'); if(input){ input.focus(); input.select(); } },30);
+}
+function saveHomeRename(id){
+  if(!requireCurrentUserPermission('w')) return;
+  const node=mfFind(homeDirectoryTree,id), input=document.getElementById('homeRenameName');
+  const name=input?input.value.trim():'';
+  if(!node||!name||/[\\/]/.test(name)||homeDirectoryTree.children.some(child=>child.id!==id&&child.name.toLowerCase()===name.toLowerCase())){ showToast('ชื่อไม่ถูกต้องหรือซ้ำ'); return; }
+  node.name=name; closeModal(); renderContent(); showToast('เปลี่ยนชื่อแล้ว');
+}
+function deleteHomeNode(id){
+  if(!requireCurrentUserPermission('w')) return;
+  const index=homeDirectoryTree.children.findIndex(child=>child.id===id);
+  if(index>-1){ const name=homeDirectoryTree.children[index].name; homeDirectoryTree.children.splice(index,1); renderContent(); showToast('ลบ "'+name+'" แล้ว'); }
+}
+function showStudentHomeNodeContextMenu(event,id){
+  showFmContextMenu(event,[
+    {label:'Copy',icon:'download',run:()=>copyFolderNode(mfFind(homeDirectoryTree,id))},
+    {label:'ตั้งสิทธิ์',icon:'lock',run:()=>openHomePermModal(id)},
+    {label:'เปลี่ยนชื่อ',icon:'edit',run:()=>openHomeRenameModal(id)},
+    {label:'ลบ',icon:'x',danger:true,run:()=>deleteHomeNode(id)}
+  ]);
+}
+function openHomeCreateModal(type){
+  const isFolder=type==='folder';
+  const overlay=document.getElementById('modalOverlay');
+  document.getElementById('modalTitle').textContent=isFolder?'สร้างโฟลเดอร์ใหม่':'สร้างไฟล์ใหม่';
+  document.getElementById('modalMeta').textContent='/home/'+ROLES.student.name;
+  document.getElementById('modalIcon').innerHTML=icon(isFolder?'folderPlus':'file',16);
+  document.getElementById('modalBody').innerHTML='<div class="field"><label for="homeCreateName">'+(isFolder?'ชื่อโฟลเดอร์':'ชื่อไฟล์')+'</label>'
+    +'<input type="text" id="homeCreateName" autocomplete="off" placeholder="'+(isFolder?'เช่น โปรเจกต์':'เช่น note.txt')+'" value="'+(isFolder?'โฟลเดอร์ใหม่':'ไฟล์ใหม่.txt')+'"></div>';
+  document.getElementById('modalFoot').innerHTML='<button class="btn primary" onclick="submitHomeCreate(\''+type+'\')">'+icon(isFolder?'folderPlus':'file',14)+' '+(isFolder?'สร้างโฟลเดอร์':'สร้างไฟล์')+'</button><button class="btn ghost" onclick="closeModal()">ยกเลิก</button>';
+  overlay.classList.add('open');
+  setTimeout(()=>{ const input=document.getElementById('homeCreateName'); if(input){ input.focus(); input.select(); input.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); submitHomeCreate(type); } }; } },30);
+}
+function submitHomeCreate(type){
+  if(!requireCurrentUserPermission('w')) return;
+  const input=document.getElementById('homeCreateName');
+  let name=input?input.value.trim():'';
+  if(!name||/[\\/]/.test(name)){ showToast('ชื่อไม่ถูกต้อง'); if(input) input.focus(); return; }
+  if(type==='file'&&!name.includes('.')) name+='.txt';
+  if(homeDirectoryTree.children.some(child=>child.name.toLowerCase()===name.toLowerCase())){ showToast('มีชื่อนี้อยู่ใน Home Directory แล้ว'); if(input) input.focus(); return; }
+  homeDirectoryTree.children.push(type==='folder'
+    ? {id:'home_'+Date.now(),name,type:'folder',perm:'private',children:[]}
+    : {id:'home_'+Date.now(),name,type:'file',perm:'private',content:''});
+  closeModal();
+  renderContent();
+  showToast('สร้าง'+(type==='folder'?'โฟลเดอร์':'ไฟล์')+' "'+name+'" ใน Home Directory แล้ว');
+}
+function renderMyFolder(){
+  const head='<div class="section-head"><h2>My Folder</h2><div style="display:flex;gap:8px;flex-wrap:wrap;">'
+    +'<button class="btn" onclick="mfCreateFolder()">'+icon('folderPlus',13)+' สร้างโฟลเดอร์</button>'
+    +'<button class="btn primary" onclick="mfCreateFile()">'+icon('file',13)+' สร้างไฟล์</button></div></div>';
+  const searchBox='<div class="field" style="max-width:360px;margin:8px 0 12px;"><input type="text" placeholder="ค้นหาไฟล์/โฟลเดอร์ใน My Folder..." value="'+escapeHtml(mfQuery)+'" oninput="setMfQuery(this.value)"></div>';
+  const q=mfQuery.trim().toLowerCase();
+  if(q){
+    const all=[]; mfWalk(myFolderTree,['mf_root'],all);
+    const hits=all.filter(r=>r.node.name.toLowerCase().includes(q));
+    const rows=hits.length ? '<div class="row-list">'+hits.map(r=>{
+      const n=r.node, m=mfIconFor(n);
+      const path=r.trail.map(id=>mfFind(myFolderTree,id).name).join(' / ');
+      return '<button class="row-card" onclick="mfOpenFromSearch(\''+n.id+'\',\''+r.trail.join(',')+'\')">'
+        +'<div class="row-badge" style="background:rgba(255,255,255,0.08);color:'+m.col+'">'+icon(m.ic,18)+'</div>'
+        +'<div><div class="row-title">'+escapeHtml(n.name)+'</div><div class="row-sub">'+escapeHtml(path)+'</div>'+unixMetaHtml(n,myFolderTree.owner)+'</div>'
+        +'<div class="row-chevron">'+icon('chevRight',16)+'</div></button>';
+    }).join('')+'</div>' : '<div class="empty-note">ไม่พบรายการที่ตรงกับ "'+escapeHtml(mfQuery)+'"</div>';
+    return '<div oncontextmenu="showMyFolderBlankContextMenu(event)">'+head+searchBox+'<div class="section-sub">พบ '+hits.length+' รายการ</div>'+rows+'</div>';
+  }
+  const folder=mfCurrentFolder();
+  const crumbsHtml=myFolderPathIds.map((id,i)=>{
+    const n=mfFind(myFolderTree,id);
+    return (i>0?'<span class="sep">/</span>':'')+'<button onclick="mfGoto('+i+')">'+escapeHtml(n.name)+'</button>';
+  }).join('');
+  const items=[...folder.children].sort((a,b)=>Number(b.type==='folder')-Number(a.type==='folder'));
+  const tiles=items.length?'<div class="fm-grid" id="myFolderGrid" oncontextmenu="showMyFolderBlankContextMenu(event)" onmousedown="mfStartMarquee(event)" onmousemove="mfUpdateMarquee(event)" onmouseup="mfEndMarquee(event)"><div class="mf-marquee" aria-hidden="true"></div>'+items.map(it=>{
+    const pl=mfPermLabel(it);
+    return '<button type="button" class="fm-tile'+(it.type==='folder'?' mf-drop-folder':'')+'" data-node-id="'+it.id+'" draggable="true" ondragstart="mfDragStart(event,\''+it.id+'\')" ondragend="mfDragEnd(event)" ondragover="mfDragOver(event,\''+it.id+'\')" ondragleave="mfDragLeave(event)" ondrop="mfDropOnFolder(event,\''+it.id+'\')" ondblclick="mfHandleItemDoubleClick(event,\''+it.id+'\')" onclick="mfHandleItemClick(event,\''+it.id+'\')" oncontextmenu="showMyFolderContextMenu(event,\''+it.id+'\')">'
+      +(it.type==='folder'?mfFolderArt():mfFileArt(it))+'<span class="fm-name" id="mfname_'+it.id+'">'+escapeHtml(it.name)+'</span>'
+      +'<span style="font-size:9.5px;color:'+pl[1]+';">'+pl[0]+'</span>'+unixMetaHtml(it,myFolderTree.owner)+'</button>';
+  }).join('')+'</div>':'<div class="empty-note" oncontextmenu="showMyFolderBlankContextMenu(event)">โฟลเดอร์นี้ยังว่างเปล่า — สร้างโฟลเดอร์หรือไฟล์ใหม่ได้เลย</div>';
+  return '<div oncontextmenu="showMyFolderBlankContextMenu(event)">'+head+searchBox
+    +'<div class="crumbs" style="margin-bottom:6px;">'+crumbsHtml+'</div>'
+    +'<div class="section-sub">ดับเบิลคลิกเพื่อเปิด · ลากครอบพื้นที่ว่างเพื่อเลือกหลายรายการ แล้วลากไปวางบนโฟลเดอร์เพื่อย้าย · Ctrl+C / Ctrl+V คัดลอกและวาง · คลิกขวาเพื่อจัดการรายการ</div>'+tiles+'</div>';
+}function mfGoto(i){ mfQuery=''; if(state.role==='student'&&state.view==='myFolder'&&i===0) studentHomeRoot=true; myFolderPathIds = myFolderPathIds.slice(0,i+1); renderContent(); }
+function mfOpen(id){
+  const n = mfFind(myFolderTree,id);
+  if(!n) return;
+  if(n.type==='folder'){ if(!requireCurrentUserPermission('x')) return; myFolderPathIds.push(id); renderContent(); return; }
+  mfOpenFileViewer(n);
+}
+function mfHandleItemClick(event,id){
+  if(event.target.closest('.fm-context-menu,input')) return;
+  clearTimeout(mfOpenTimer);
+  const tile=event.currentTarget;
+  if(event.ctrlKey||event.metaKey){ tile.classList.toggle('selected'); return; }
+  const selected=document.querySelectorAll('#body .fm-grid .fm-tile.selected');
+  if(tile.classList.contains('selected')&&selected.length>1) return;
+  selected.forEach(item=>item.classList.remove('selected'));
+  tile.classList.add('selected');
+}
+let mfMarqueeStart=null;
+function mfStartMarquee(event){
+  if(event.button!==0||event.target!==event.currentTarget) return;
+  const grid=event.currentTarget, rect=grid.getBoundingClientRect();
+  mfMarqueeStart={grid,x:event.clientX-rect.left,y:event.clientY-rect.top};
+  document.querySelectorAll('#body .fm-grid .fm-tile.selected').forEach(tile=>tile.classList.remove('selected'));
+  const box=grid.querySelector('.mf-marquee');
+  box.style.display='block'; box.style.left=mfMarqueeStart.x+'px'; box.style.top=mfMarqueeStart.y+'px'; box.style.width='0'; box.style.height='0';
+  event.preventDefault();
+}
+function mfUpdateMarquee(event){
+  if(!mfMarqueeStart||mfMarqueeStart.grid!==event.currentTarget) return;
+  const rect=mfMarqueeStart.grid.getBoundingClientRect(), x=event.clientX-rect.left, y=event.clientY-rect.top;
+  const left=Math.min(x,mfMarqueeStart.x), top=Math.min(y,mfMarqueeStart.y), width=Math.abs(x-mfMarqueeStart.x), height=Math.abs(y-mfMarqueeStart.y);
+  const box=mfMarqueeStart.grid.querySelector('.mf-marquee');
+  Object.assign(box.style,{left:left+'px',top:top+'px',width:width+'px',height:height+'px'});
+  const area={left:rect.left+left,right:rect.left+left+width,top:rect.top+top,bottom:rect.top+top+height};
+  mfMarqueeStart.grid.querySelectorAll('.fm-tile').forEach(tile=>{
+    const r=tile.getBoundingClientRect();
+    tile.classList.toggle('selected',r.right>=area.left&&r.left<=area.right&&r.bottom>=area.top&&r.top<=area.bottom);
+  });
+}
+function mfEndMarquee(){
+  if(!mfMarqueeStart) return;
+  const box=mfMarqueeStart.grid.querySelector('.mf-marquee');
+  if(box) box.style.display='none';
+  mfMarqueeStart=null;
+}
+function handleMyFolderClipboardShortcut(event){
+  if(!(event.ctrlKey||event.metaKey)||event.altKey) return;
+  const key=event.key.toLowerCase();
+  if(key!=='c'&&key!=='v') return;
+  if(event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
+  const modal=document.getElementById('modalOverlay');
+  if(modal&&modal.classList.contains('open')) return;
+  const studentView=state.role==='student'&&state.view==='myFolder'&&!studentHomeRoot;
+  const adminView=state.role==='admin'&&state.view==='userFiles';
+  if(!studentView&&!adminView) return;
+  if(key==='c'){
+    const nodes=studentView?mfSelectedNodes():adminSelectedNodes();
+    if(!nodes.length) return;
+    event.preventDefault(); copyFolderNodes(nodes); return;
+  }
+  if(!folderClipboardItems().length) return;
+  event.preventDefault();
+  if(studentView) pasteIntoMyFolder(); else pasteIntoAdminFolder();
+}
+function mfDragStart(event,id){
+  const tile=event.currentTarget;
+  if(!tile.classList.contains('selected')){
+    document.querySelectorAll('#body .fm-grid .fm-tile.selected').forEach(item=>item.classList.remove('selected'));
+    tile.classList.add('selected');
+  }
+  const ids=Array.from(document.querySelectorAll('#body .fm-grid .fm-tile.selected')).map(item=>item.dataset.nodeId).filter(Boolean);
+  if(!ids.includes(id)) ids.push(id);
+  event.dataTransfer.effectAllowed='move';
+  event.dataTransfer.setData('text/plain',JSON.stringify(ids));
+}
+function mfDragEnd(){ document.querySelectorAll('.mf-drop-folder.drop-target').forEach(tile=>tile.classList.remove('drop-target')); }
+function mfDragOver(event,id){
+  const target=mfFind(myFolderTree,id);
+  if(!target||target.type!=='folder') return;
+  event.preventDefault(); event.dataTransfer.dropEffect='move'; event.currentTarget.classList.add('drop-target');
+}
+function mfDragLeave(event){
+  if(!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.classList.remove('drop-target');
+}
+function mfDropOnFolder(event,targetId){
+  if(!requireCurrentUserPermission('w')) return;
+  const target=mfFind(myFolderTree,targetId);
+  if(!target||target.type!=='folder') return;
+  event.preventDefault(); event.stopPropagation(); event.currentTarget.classList.remove('drop-target');
+  let ids=[];
+  try{ ids=JSON.parse(event.dataTransfer.getData('text/plain')||'[]'); }catch(error){ return; }
+  const source=mfCurrentFolder();
+  if(!source||!ids.length) return;
+  if(ids.includes(targetId)||ids.some(id=>{ const node=mfFind(source,id); return node&&node.type==='folder'&&mfFind(node,targetId); })){
+    showToast('ย้ายโฟลเดอร์เข้าไปในตัวเองไม่ได้'); return;
+  }
+  const moving=source.children.filter(node=>ids.includes(node.id));
+  if(!moving.length||target===source) return;
+  for(let i=source.children.length-1;i>=0;i--){if(ids.includes(source.children[i].id)) source.children.splice(i,1);}
+  moving.forEach(node=>{ node.name=uniqueFolderName(target,node.name); target.children.push(node); });
+  persistSharedState(); renderContent();
+  showToast('ย้าย '+moving.length+' รายการเข้า "'+target.name+'" แล้ว');
+}
+function mfHandleItemDoubleClick(event,id){
+  event.preventDefault(); event.stopPropagation(); clearTimeout(mfOpenTimer); mfOpen(id);
+}
+function closeFmContextMenu(){
+  const menu=document.getElementById('fmContextMenu');
+  if(menu) menu.classList.remove('open');
+  fmContextActions=[];
+}
+let fmContextActions=[];
+function showFmContextMenu(event,actions){
+  event.preventDefault(); event.stopPropagation();
+  const menu=document.getElementById('fmContextMenu');
+  fmContextActions=actions;
+  menu.innerHTML=actions.map((a,i)=>'<button type="button" role="menuitem" class="'+(a.danger?'danger':'')+'" onclick="runFmContextAction('+i+')">'+icon(a.icon,14)+'<span>'+a.label+'</span></button>').join('');
+  menu.classList.add('open');
+  const scale=Math.max(0.1,parseFloat(getComputedStyle(document.body).zoom)||1);
+  const rect=menu.getBoundingClientRect(), gap=6, edge=8;
+  const left=Math.max(edge,Math.min(event.clientX+gap,window.innerWidth-rect.width-edge));
+  const top=Math.max(edge,Math.min(event.clientY+gap,window.innerHeight-rect.height-edge));
+  menu.style.left=(left/scale)+'px'; menu.style.top=(top/scale)+'px';
+}
+function runFmContextAction(index){
+  const action=fmContextActions[index];
+  closeFmContextMenu();
+  if(action) action.run();
+}
+function mfSelectedNodes(){
+  const folder=mfCurrentFolder();
+  if(!folder) return [];
+  return Array.from(document.querySelectorAll('#myFolderGrid .fm-tile.selected'))
+    .map(tile=>folder.children.find(node=>node.id===tile.dataset.nodeId)).filter(Boolean);
+}
+function mfDeleteSelected(){
+  if(!requireCurrentUserPermission('w')) return;
+  const folder=mfCurrentFolder(), ids=new Set(mfSelectedNodes().map(node=>node.id));
+  if(!folder||!ids.size) return;
+  const before=folder.children.length;
+  for(let i=folder.children.length-1;i>=0;i--){if(ids.has(folder.children[i].id)) folder.children.splice(i,1);}
+  const count=before-folder.children.length;
+  if(!count) return;
+  persistSharedState(); renderContent(); showToast('ลบ '+count+' รายการแล้ว');
+}
+function showMyFolderContextMenu(event,id){
+  const selected=mfSelectedNodes();
+  const group=selected.length>1&&selected.some(node=>node.id===id);
+  const actions=[];
+  if(group){
+    actions.push({label:'คัดลอกที่เลือก ('+selected.length+')',icon:'download',run:()=>copyFolderNodes(selected)});
+    actions.push({label:'ลบที่เลือก ('+selected.length+')',icon:'x',danger:true,run:()=>mfDeleteSelected()});
+  }
+  actions.push(
+    {label:'Copy',icon:'download',run:()=>copyFolderNode(mfFind(myFolderTree,id))},
+    {label:'ตั้งสิทธิ์',icon:'lock',run:()=>openMfPermModal(id)},
+    {label:'เปลี่ยนชื่อ',icon:'edit',run:()=>mfStartRename(id)},
+    {label:'ลบ',icon:'x',danger:true,run:()=>mfDelete(id)}
+  );
+  showFmContextMenu(event,actions);
+}
+function pasteIntoMyFolder(){
+  const target=mfCurrentFolder(), sources=folderClipboardItems();
+  if(!target||!sources.length) return;
+  if(!requireCurrentUserPermission('r')||!requireCurrentUserPermission('w')) return;
+  const pasted=sources.map(source=>{
+    const node=cloneFolderNode(source);
+    rekeyFolderNode(node,'mf_paste_');
+    node.name=uniqueFolderName(target,node.name);
+    target.children.push(node);
+    return node;
+  });
+  persistSharedState();
+  renderContent();
+  showToast(pasted.length===1?'วาง "'+pasted[0].name+'" แล้ว':'วาง '+pasted.length+' รายการแล้ว');
+}
+function showMyFolderBlankContextMenu(event){
+  if(event.target.closest('input,textarea,button,.fm-context-menu')) return;
+  const actions=[
+    {label:'สร้างโฟลเดอร์',icon:'folderPlus',run:()=>mfCreateFolder()},
+    {label:'สร้างไฟล์',icon:'file',run:()=>mfCreateFile()}
+  ];
+  const selected=mfSelectedNodes();
+  if(selected.length){
+    actions.unshift({label:'คัดลอกที่เลือก ('+selected.length+')',icon:'download',run:()=>copyFolderNodes(selected)});
+    actions.unshift({label:'ลบที่เลือก ('+selected.length+')',icon:'x',danger:true,run:()=>mfDeleteSelected()});
+  }
+  if(folderClipboard) actions.push({label:'Paste',icon:'download',run:()=>pasteIntoMyFolder()});
+  showFmContextMenu(event,actions);
+}
+function showMyFolderRootContextMenu(event){
+  showFmContextMenu(event,[{label:'ตั้งสิทธิ์',icon:'lock',run:()=>openMfPermModal('mf_root')}]);
+}
+function mfApplyPerm(node, value){ node.perm=value; (node.children||[]).forEach(c=>mfApplyPerm(c,value)); }
+function openMfPermModal(id){
+  const n=mfFind(myFolderTree,id); if(!n) return;
+  const cur=n.perm||'private';
+  const opts=[['private','ส่วนตัว','เฉพาะฉันเท่านั้น'],['view','เพื่อนดูได้อย่างเดียว','เพื่อนเปิดอ่านได้ แต่คัดลอกไม่ได้'],['copy','เพื่อนดูและคัดลอกได้','เพื่อนคัดลอกไปไว้ใน My Folder ของตัวเองได้']];
+  document.getElementById('modalTitle').textContent='ตั้งค่าสิทธิ์';
+  document.getElementById('modalMeta').textContent=n.name;
+  document.getElementById('modalIcon').innerHTML=icon('lock',16);
+  document.getElementById('modalBody').innerHTML=opts.map(o=>
+    '<label style="display:flex;align-items:flex-start;gap:10px;padding:10px 4px;cursor:pointer;"><input type="radio" name="mfPerm" value="'+o[0]+'"'+(cur===o[0]?' checked':'')+'>'
+    +'<span><b>'+o[1]+'</b><span style="display:block;color:var(--text-dim);font-size:11px;">'+o[2]+'</span></span></label>').join('')
+    +(n.type==='folder'?'<div class="hint-note" style="margin-top:10px;">'+icon('alert',14)+'<span>สิทธิ์นี้จะมีผลกับไฟล์และโฟลเดอร์ทั้งหมดข้างในด้วย</span></div>':'');
+  document.getElementById('modalFoot').innerHTML='<button class="btn primary" onclick="saveMfPerm(\''+id+'\')">'+icon('check',14)+' บันทึก</button><button class="btn ghost" onclick="closeModal()">ยกเลิก</button>';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function saveMfPerm(id){
+  if(!requireCurrentUserPermission('w')) return;
+  const n=mfFind(myFolderTree,id);
+  const sel=document.querySelector('input[name="mfPerm"]:checked');
+  if(n&&sel){ mfApplyPerm(n, sel.value); closeModal(); renderContent(); showToast('บันทึกสิทธิ์ของ "'+n.name+'" แล้ว'); }
+}
+function mfCreateFolder(){ openMyFolderCreateModal('folder'); }
+function mfCreateFile(){ openMyFolderCreateModal('file'); }
+function openMyFolderCreateModal(type){
+  const isFolder = type==='folder';
+  const overlay=document.getElementById('modalOverlay');
+  const titleEl=document.getElementById('modalTitle'), metaEl=document.getElementById('modalMeta'), iconEl=document.getElementById('modalIcon'), bodyEl=document.getElementById('modalBody'), footEl=document.getElementById('modalFoot');
+  const path = myFolderPathIds.map(id=>{ const n=mfFind(myFolderTree,id); return n ? n.name : ''; }).filter(Boolean).join(' / ');
+  titleEl.textContent = isFolder ? 'สร้างโฟลเดอร์ใหม่' : 'สร้างไฟล์ใหม่';
+  metaEl.textContent = path || 'My Folder';
+  iconEl.innerHTML = icon(isFolder ? 'folderPlus' : 'file',16);
+  bodyEl.innerHTML = '<div class="field"><label for="mfCreateName">'+(isFolder?'ชื่อโฟลเดอร์':'ชื่อไฟล์')+'</label>'
+    +'<input type="text" id="mfCreateName" autocomplete="off" placeholder="'+(isFolder?'เช่น โปรเจกต์':'เช่น main.py หรือ note.txt')+'" value="'+(isFolder?'โฟลเดอร์ใหม่':'ไฟล์ใหม่.txt')+'">'
+    +'<div class="mod-sub" style="margin-top:8px;">'+(isFolder?'เลือกชื่อแล้วกดสร้าง เพื่อเพิ่มโฟลเดอร์ที่นี่':'ใส่นามสกุลไฟล์ได้ เช่น .py, .cpp, .md หรือ .txt')+'</div></div>';
+  footEl.innerHTML = '<button class="btn primary" onclick="submitMyFolderCreate(\''+type+'\')">'+icon(isFolder?'folderPlus':'file',14)+' '+(isFolder?'สร้างโฟลเดอร์':'สร้างไฟล์')+'</button><button class="btn ghost" onclick="closeModal()">ยกเลิก</button>';
+  overlay.classList.add('open');
+  setTimeout(()=>{ const inp=document.getElementById('mfCreateName'); if(inp){ inp.focus(); inp.select(); inp.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); submitMyFolderCreate(type); } }; } },30);
+}
+function submitMyFolderCreate(type){
+  if(!requireCurrentUserPermission('w')) return;
+  const input=document.getElementById('mfCreateName');
+  const isFolder=type==='folder';
+  let name=input ? input.value.trim() : '';
+  if(!name){ showToast(isFolder?'กรุณาใส่ชื่อโฟลเดอร์':'กรุณาใส่ชื่อไฟล์'); if(input) input.focus(); return; }
+  if(/[\\/]/.test(name)){ showToast('ชื่อห้ามมีเครื่องหมาย / หรือ \\'); if(input) input.focus(); return; }
+  if(!isFolder && !name.includes('.')) name += '.txt';
+  const parent=mfCurrentFolder();
+  if(parent.children.some(item=>item.name.toLowerCase()===name.toLowerCase())){ showToast('มีชื่อนี้อยู่ในโฟลเดอร์แล้ว'); if(input) input.focus(); return; }
+  const id='mf_'+Date.now()+Math.floor(Math.random()*1000);
+  parent.children.push(isFolder ? {id,name,type:'folder',children:[]} : {id,name,type:'file',content:''});
+  closeModal();
+  renderContent();
+  showToast((isFolder?'สร้างโฟลเดอร์':'สร้างไฟล์')+' "'+name+'" แล้ว');
+}function mfDelete(id){
+  if(!requireCurrentUserPermission('w')) return;
+  const folder = mfCurrentFolder();
+  const idx = folder.children.findIndex(c=>c.id===id);
+  if(idx>-1){ folder.children.splice(idx,1); renderContent(); showToast('ลบแล้ว'); }
+}
+function mfStartRename(id){
+  if(!requireCurrentUserPermission('w')) return;
+  const el=document.getElementById('mfname_'+id);
+  const n=mfFind(myFolderTree,id);
+  if(!el||!n||document.getElementById('mfrename_'+id)) return;
+  const original=n.name;
+  el.innerHTML='<input type="text" class="mono" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid var(--mint);border-radius:6px;padding:4px 6px;color:var(--text);font-size:12px;" id="mfrename_'+id+'" value="'+escapeHtml(original)+'" aria-label="เปลี่ยนชื่อ">';
+  const inp=document.getElementById('mfrename_'+id);
+  let finished=false;
+  inp.focus(); inp.select();
+  inp.onpointerdown=inp.onclick=inp.ondblclick=e=>e.stopPropagation();
+  function finish(save){
+    if(finished) return;
+    finished=true;
+    if(save&&!requireCurrentUserPermission('w')){ renderContent(); return; }
+    const value=inp.value.trim();
+    if(save&&value&&/[\\/]/.test(value)){
+      showToast('ชื่อห้ามมีเครื่องหมาย / หรือ \\');
+      renderContent(); return;
+    }
+    if(save&&value&&value.toLowerCase()!==original.toLowerCase()&&mfCurrentFolder().children.some(item=>item.id!==id&&item.name.toLowerCase()===value.toLowerCase())){
+      showToast('มีชื่อนี้อยู่ในโฟลเดอร์แล้ว');
+      renderContent(); return;
+    }
+    if(save&&value) n.name=value;
+    renderContent();
+    if(save&&value&&value!==original) showToast('เปลี่ยนชื่อเป็น "'+value+'" แล้ว');
+  }
+  inp.onkeydown=e=>{ if(e.key==='Enter'){e.preventDefault();finish(true);} if(e.key==='Escape'){e.preventDefault();finish(false);} };
+  inp.onblur=()=>finish(true);
+}function mfOpenFileViewer(n){
+  const overlay=document.getElementById('modalOverlay');
+  const titleEl=document.getElementById('modalTitle'), metaEl=document.getElementById('modalMeta'), iconEl=document.getElementById('modalIcon'), bodyEl=document.getElementById('modalBody'), footEl=document.getElementById('modalFoot');
+  const {ic} = mfIconFor(n);
+  const ext = (n.name.split('.').pop()||'').toLowerCase();
+  titleEl.textContent = n.name; metaEl.textContent = 'My Folder'; iconEl.innerHTML = icon(ic,16);
+  if(IMAGE_EXTS.includes(ext)){
+    bodyEl.innerHTML = '<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:34px 14px; background:rgba(255,255,255,0.03); border:1px dashed rgba(255,255,255,0.16); border-radius:12px;">'
+      +'<div class="mod-icon" style="width:52px;height:52px;color:#c9a6ff;">'+icon('image',26)+'</div>'
+      +'<div class="mono" style="font-size:12px;">'+escapeHtml(n.name)+'</div>'
+      +'<div style="font-size:11px; color:var(--text-dim); text-align:center;">ไฟล์รูปภาพ — ตัวอย่างจริงไม่พร้อมใช้งานในเดโมนี้ แต่ระบบจดจำไว้เป็นไฟล์รูปภาพตามนามสกุล .'+ext+'</div></div>';
+    footEl.innerHTML = '<button class="btn ghost" onclick="closeModal()">ปิด</button>';
+  } else {
+    bodyEl.innerHTML = '<textarea id="mfFileContent" style="width:100%;min-height:220px;background:rgba(255,255,255,0.04);border:1px solid var(--card-border);border-radius:9px;padding:10px 12px;color:var(--text);font-family:JetBrains Mono,monospace;font-size:12px;line-height:1.6;">'+escapeHtml(n.content||'')+'</textarea>';
+    footEl.innerHTML = '<button class="btn primary" onclick="mfSaveFile(\''+n.id+'\')">บันทึก</button><button class="btn ghost" onclick="closeModal()">ปิด</button>';
+  }
+  overlay.classList.add('open');
+}
+function mfSaveFile(id){
+  if(!requireCurrentUserPermission('w')) return;
+  const n = mfFind(myFolderTree,id);
+  const ta = document.getElementById('mfFileContent');
+  if(n && ta){ n.content = ta.value; showToast('บันทึก '+n.name+' แล้ว'); closeModal(); renderContent(); }
+}
+
+/* ================= topbar chrome (search / notifications removed) ================= */
+document.getElementById('modalCloseBtn').innerHTML = icon('x',16);
+document.getElementById('clockPill').innerHTML = icon('server',16)+'<div><div class="clock-num" id="clockNum">--:--:--</div><div style="font-size:10px;">Server load 24%</div></div>';
+document.getElementById('mobileNavToggle').innerHTML = '<button id="mobileNavBtn">'+icon('menu',15)+'<span id="mobileNavLabel">เมนู</span></button>';
+function tickClock(){ const n=new Date(); document.getElementById('clockNum').textContent = String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0'); }
+tickClock(); setInterval(tickClock,1000);
+
+/* ---- role-aware ticker: students see their own storage quota, staff see backup.sh status ---- */
+let tickerPlaying = true;
+const STUDENT_QUOTA = {used:1.8, total:5}; /* GB — per-account quota on the Linux server, e.g. quota -s */
+function toggleTicker(){ tickerPlaying = !tickerPlaying; renderTicker(); }
+function renderTicker(){
+  const playBtn = document.getElementById('tickerPlay');
+  const label = document.getElementById('tickerLabel');
+  const fill = document.getElementById('tickerFill');
+  if(state.role==='student'){
+    const pct = Math.round(STUDENT_QUOTA.used/STUDENT_QUOTA.total*100);
+    playBtn.innerHTML = icon('database',14);
+    playBtn.onclick = ()=> showToast('โควตาไฟล์บัญชี '+ROLES.student.name+': '+STUDENT_QUOTA.used+' GB จาก '+STUDENT_QUOTA.total+' GB (du -sh ~/)');
+    label.textContent = 'พื้นที่ใช้งานของคุณ: '+STUDENT_QUOTA.used+' GB / '+STUDENT_QUOTA.total+' GB';
+    fill.style.width = pct+'%';
+    fill.style.background = pct>85 ? 'var(--red)' : (pct>65 ? 'var(--yellow)' : 'var(--mint)');
+  } else {
+    playBtn.innerHTML = icon(tickerPlaying?'pause':'play',14);
+    playBtn.onclick = toggleTicker;
+    label.textContent = tickerPlaying ? 'backup.sh — สำรองข้อมูลประจำวัน' : 'backup.sh — หยุดชั่วคราว';
+    fill.style.width = '34%';
+    fill.style.background = 'var(--mint)';
+  }
+}
+
+const roleSwitchEl = document.getElementById('roleSwitch');
+Object.keys(ROLES).forEach(key=>{
+  const b=document.createElement('button');
+  b.textContent=ROLES[key].label;
+  if(key===state.role) b.classList.add('active');
+  b.onclick=()=>{ state={role:key, view:key==='student'?'myFolder':'home'}; studentHomeRoot=false; renderRole(); };
+  roleSwitchEl.appendChild(b);
+});
+
+/* ================= navigation helpers ================= */
+function navigate(view){
+  if(view==='people') peopleSelected=null;
+  if(view==='myFolder'&&state.role==='student') studentHomeRoot=false;
+  state.view = view;
+  renderContent();
+  closeMobileDrawer();
+  updateMobileNavLabel();
+  const c = document.querySelector('.content'); if(c) c.scrollTo({top:0});
+}
+function crumbBtn(label, view){ return '<button onclick="navigate(\''+view+'\')">'+label+'</button>'; }
+
+/* ================= mobile drawer ================= */
+function renderMobileDrawer(){
+  const role = ROLES[state.role];
+  const drawer = document.getElementById('mobileDrawer');
+  drawer.innerHTML = '<div class="brand"><div class="mark">'+icon('code',16)+'</div><div class="brand-text"><div class="name">code-hub</div><div class="ver">v1.0 · '+role.label+'</div></div></div>'
+    + role.sidebar.map(it=>{
+        const activeParent = state.view;
+        return '<button class="nav-item'+(activeParent===it[1]?' active':'')+'" onclick="navigate(\''+it[1]+'\')">'+icon(it[0],15)+'<span>'+it[2]+'</span></button>';
+      }).join('');
+}
+function openMobileDrawer(){ renderMobileDrawer(); document.getElementById('mobileDrawer').classList.add('open'); document.getElementById('mobileDrawerOverlay').classList.add('open'); }
+function closeMobileDrawer(){ document.getElementById('mobileDrawer').classList.remove('open'); document.getElementById('mobileDrawerOverlay').classList.remove('open'); }
+function updateMobileNavLabel(){
+  const role = ROLES[state.role];
+  const activeParent = state.view;
+  const match = role.sidebar.find(it=>it[1]===activeParent);
+  const lbl = document.getElementById('mobileNavLabel');
+  if(lbl) lbl.textContent = match ? match[2] : role.label;
+}
+document.getElementById('mobileDrawerOverlay').addEventListener('click', closeMobileDrawer);
+
+/* ================= render: shell (sidebar + chrome) ================= */
+function renderRole(){
+  Array.from(roleSwitchEl.children).forEach(b=>b.classList.toggle('active', b.textContent===ROLES[state.role].label));
+  renderTicker();
+  const role = ROLES[state.role];
+  const root = document.getElementById('panelRoot');
+  const sidebarHtml = '<div class="sidebar">'
+    +'<div class="brand"><div class="mark">'+icon('code',16)+'</div><div class="brand-text"><div class="name">code-hub</div><div class="ver">v1.0 · '+role.label+'</div></div></div>'
+    + role.sidebar.map(it=>{
+        const activeParent = state.view;
+        return '<button class="nav-item'+(activeParent===it[1]?' active':'')+'" data-view="'+it[1]+'" onclick="navigate(\''+it[1]+'\')">'+icon(it[0],15)+'<span>'+it[2]+'</span></button>';
+      }).join('')
+    +'</div>';
+  root.innerHTML = sidebarHtml + '<div class="content"><div class="crumbs" id="crumbs"></div><div id="body"></div></div>';
+  document.getElementById('mobileNavBtn').onclick = openMobileDrawer;
+  updateMobileNavLabel();
+  renderContent();
+}
+/* keeps the desktop sidebar's green highlight in sync with state.view — must run on every navigate(), not just on role switch */
+function updateSidebarActive(){
+  const activeParent = state.view;
+  document.querySelectorAll('.sidebar .nav-item').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.view===activeParent);
+  });
+}
+
+/* ================= render: content router ================= */
+function renderContent(){
+  const role = ROLES[state.role];
+  const crumbsEl = document.getElementById('crumbs');
+  const bodyEl = document.getElementById('body');
+  let crumbs = [crumbBtn('หน้าแรก','home')];
+  let html = '';
+
+  if(state.view==='home'){
+    crumbs = [ '<span class="current">ภาพรวม</span>' ];
+    html = renderHome(role);
+  } else if(state.view==='myFolder'){
+    crumbs.push('<span class="sep">›</span><span class="current">'+(studentHomeRoot?'Home Directory':'My Folder')+'</span>');
+    html = state.role==='student'&&studentHomeRoot ? renderStudentHomeDirectory() : renderMyFolder();
+  } else if(['shared'].includes(state.view)){
+    crumbs.push('<span class="sep">›</span><span class="current">Shared</span>');
+    html = renderAggregated();
+  } else if(state.view==='people'){
+    crumbs.push('<span class="sep">›</span>'+(peopleSelected
+      ? crumbBtn('ผู้ใช้อื่น','people')+'<span class="sep">›</span><span class="current">'+escapeHtml(peopleSelected)+'</span>'
+      : '<span class="current">ผู้ใช้อื่น</span>'));
+    html = renderPeople();
+  } else if(state.view==='users'){
+    crumbs.push('<span class="sep">›</span><span class="current">ผู้ใช้</span>');
+    html = renderUsers();
+  } else if(state.view==='userFiles'){
+    crumbs.push('<span class="sep">›</span>'+crumbBtn('ผู้ใช้','users'));
+    crumbs.push('<span class="sep">›</span><span class="current">ไฟล์ของ '+adminFilesUser+'</span>');
+    html = renderAdminUserFiles(adminFilesUser);
+  } else if(state.view==='server'){
+    crumbs.push('<span class="sep">›</span><span class="current">Server</span>');
+    html = renderServer();
+  } else if(state.view==='backup'){
+    crumbs.push('<span class="sep">›</span><span class="current">Backup</span>');
+    html = renderBackup();
+  } else if(state.view==='log'){
+    crumbs.push('<span class="sep">›</span><span class="current">Log</span>');
+    html = renderLog();
+  } else if(state.view==='settings'){
+    crumbs.push('<span class="sep">›</span><span class="current">ตั้งค่า</span>');
+    html = renderSettings(role);
+  }
+  if(state.role==='student'&&isCurrentUserRestricted('r')&&['myFolder','shared','people'].includes(state.view)){
+    crumbs=['<span class="current">ระงับสิทธิ์การอ่าน</span>'];
+    html='<div class="empty-note" role="status">บัญชี '+escapeHtml(ROLES.student.name)+' ถูกระงับสิทธิ์อ่านข้อมูล ติดต่อผู้ดูแลระบบเพื่อขอเปิดสิทธิ์</div>';
+  }
+  crumbsEl.innerHTML = crumbs.join('');
+  bodyEl.innerHTML = html;
+  updateSidebarActive();
+  if(!sharedStateHydrating) persistSharedState();
+}
+
+/* ---------- home ---------- */
+function renderHome(role){
+  const adminStudents=USERS.filter(user=>user.s==='student'&&!user.demo).length;
+  const adminDemos=USERS.filter(user=>user.demo).length;
+  const adminAccounts=USERS.filter(user=>user.s==='admin').length;
+  const facts=role===ROLES.admin?[
+    ['users',USERS.length+' บัญชีในข้อมูลหน้านี้ ('+adminStudents+' นักศึกษา, '+adminAccounts+' ผู้ดูแล, '+adminDemos+' ตัวอย่าง)'],
+    ['server','ข้อมูลเซิร์ฟเวอร์จริงยังไม่ได้เชื่อมต่อ']
+  ]:role.facts;
+  const factsHtml = facts.map(f=>'<div class="fact-row">'+icon(f[0],13)+'<span>'+f[1]+'</span></div>').join('');
+  return '<div class="profile-card"><div class="avatar-lg" style="background:'+role.profileBg+'">'+role.name.slice(-2).toUpperCase()+'</div>'
+    +'<div><div class="profile-name">'+role.name+'</div><div class="profile-handle">'+role.handle+'</div>'+factsHtml+'</div></div>';
+}
+
+const AVATAR_PALETTE = ['#3ddc97','#5aa9ff','#f2c14e','#c9a6ff','#ff9f7a','#7ad6d6'];
+function studentColor(id){ let h=0; for(let i=0;i<id.length;i++) h=(h*31+id.charCodeAt(i))>>>0; return AVATAR_PALETTE[h%AVATAR_PALETTE.length]; }
+/* aggregated views (student) ---------- */
+let sharedFolderTreeId=null;
+let sharedFolderPathIds=[];
+function collectSharedUserEntries(){
+  const out=[];
+  function walk(node, trail, tree){
+    (node.children||[]).forEach(child=>{
+      if(child.perm==='view'||child.perm==='copy') out.push({node:child, path:trail.concat(child.id), tree, owner:tree.owner||ROLES.student.name});
+      if(child.type==='folder') walk(child, trail.concat(child.id), tree);
+    });
+  }
+  const trees=[myFolderTree,homeDirectoryTree,...Object.values(userFolderTrees)];
+  trees.forEach(tree=>{
+    if(tree.perm==='view'||tree.perm==='copy') out.push({node:tree,path:[tree.id],tree,owner:tree.owner||ROLES.student.name});
+    walk(tree,[tree.id],tree);
+  });
+  return out;
+}
+function sharedTreeById(id){
+  return [myFolderTree,homeDirectoryTree,...Object.values(userFolderTrees)].find(tree=>tree.id===id)||null;
+}
+function sharedTreeRoots(){
+  const entries=collectSharedUserEntries();
+  return [myFolderTree,homeDirectoryTree,...Object.values(userFolderTrees)].filter(tree=>entries.some(item=>item.tree===tree));
+}
+function sharedCopyableNode(node){
+  if(node.type!=='folder') return node.perm==='copy'?cloneFolderNode(node):null;
+  const children=(node.children||[]).filter(child=>child.perm==='view'||child.perm==='copy').map(sharedCopyableNode).filter(Boolean);
+  if(node.perm==='copy'){
+    const clone=cloneFolderNode(node);
+    clone.children=children;
+    return clone;
+  }
+  return children.length?{id:'shared_path_'+node.id,name:node.name,type:'folder',perm:'private',children}:null;
+}
+function sharedCopyableTreeItems(tree){
+  if(tree.perm==='copy'){
+    const root=sharedCopyableNode(tree);
+    return root?[root]:[];
+  }
+  return (tree.children||[]).map(sharedCopyableNode).filter(Boolean);
+}
+function copySharedTreesContents(event,treeIds){
+  if(event) event.stopPropagation();
+  if(!requireCurrentUserPermission('r')||!requireCurrentUserPermission('x')) return;
+  const items=(treeIds||[]).flatMap(id=>{
+    const tree=sharedTreeById(id);
+    return tree?sharedCopyableTreeItems(tree):[];
+  });
+  if(!items.length){ showToast('ไม่มีรายการที่เจ้าของอนุญาตให้คัดลอก'); return; }
+  copyFolderNodes(items);
+}
+function enterSharedTree(id){
+  if(!requireCurrentUserPermission('x')) return;
+  const tree=sharedTreeById(id);
+  if(!tree) return;
+  sharedFolderTreeId=id; sharedFolderPathIds=[tree.id]; renderContent();
+}
+function sharedFolderGoTo(index){ sharedFolderPathIds=sharedFolderPathIds.slice(0,index+1); renderContent(); }
+function openSharedBrowserNode(treeId,nodeId){
+  const tree=sharedTreeById(treeId), node=mfFind(tree,nodeId);
+  if(!canCurrentUserRead()){ showToast('บัญชีนี้ถูกระงับสิทธิ์อ่าน'); return; }
+  if(!node||!['view','copy'].includes(node.perm)) return;
+  if(node.type==='folder'){ if(!requireCurrentUserPermission('x')) return; sharedFolderPathIds.push(node.id); renderContent(); return; }
+  openSharedBrowserFile(tree,node);
+}
+function openSharedBrowserFile(tree,node){
+  const overlay=document.getElementById('modalOverlay');
+  const titleEl=document.getElementById('modalTitle'), metaEl=document.getElementById('modalMeta'), iconEl=document.getElementById('modalIcon'), bodyEl=document.getElementById('modalBody'), footEl=document.getElementById('modalFoot');
+  const {ic}=mfIconFor(node), ext=(node.name.split('.').pop()||'').toLowerCase();
+  const path=sharedFolderPathIds.map(id=>mfFind(tree,id)).filter(Boolean).map(item=>item.name).join(' / ');
+  titleEl.textContent=node.name; metaEl.textContent=(tree.owner||'')+(path?' · '+path:''); iconEl.innerHTML=icon(ic,16);
+  if(IMAGE_EXTS.includes(ext)) bodyEl.innerHTML='<div class="empty-note">ตัวอย่างนี้เก็บชื่อไฟล์รูปภาพไว้ แต่ไม่มีข้อมูลภาพให้แสดง</div>';
+  else bodyEl.innerHTML='<pre class="code-box" style="white-space:pre-wrap;overflow-wrap:anywhere;">'+escapeHtml(node.content||'')+'</pre>';
+  footEl.innerHTML=(node.perm==='copy'?'<button class="btn" onclick="copySharedBrowserNode(\''+tree.id+'\',\''+node.id+'\')">'+icon('download',14)+' คัดลอก</button>':'')+'<button class="btn ghost" onclick="closeModal()">ปิด</button>';
+  overlay.classList.add('open');
+}
+function copySharedBrowserNode(treeId,nodeId){
+  const node=mfFind(sharedTreeById(treeId),nodeId);
+  if(!canCurrentUserRead()){ showToast('บัญชีนี้ถูกระงับสิทธิ์อ่าน จึงคัดลอกข้อมูลไม่ได้'); return; }
+  if(!node||node.perm!=='copy'){ showToast('เจ้าของไม่อนุญาตให้คัดลอก'); return; }
+  const copyable=sharedCopyableNode(node);
+  if(copyable) copyFolderNode(copyable);
+}
+function showSharedBrowserContextMenu(event,treeId,nodeId){
+  const node=mfFind(sharedTreeById(treeId),nodeId);
+  if(!node) return;
+  const actions=[{label:node.type==='folder'?'เปิดโฟลเดอร์':'เปิดไฟล์',icon:node.type==='folder'?'folder':'file',run:()=>openSharedBrowserNode(treeId,nodeId)}];
+  if(node.perm==='copy') actions.push({label:'คัดลอก',icon:'download',run:()=>copySharedBrowserNode(treeId,nodeId)});
+  showFmContextMenu(event,actions);
+}
+function showSharedRootContextMenu(event,treeId){
+  event.preventDefault(); event.stopPropagation();
+  const tile=document.querySelector('#sharedFolderRootsGrid .shared-root-tile[data-tree-id="'+treeId+'"]');
+  const selected=Array.from(document.querySelectorAll('#sharedFolderRootsGrid .shared-root-tile.selected'));
+  if(tile&&!selected.includes(tile)){
+    selected.forEach(item=>item.classList.remove('selected'));
+    tile.classList.add('selected');
+  }
+  const treeIds=Array.from(document.querySelectorAll('#sharedFolderRootsGrid .shared-root-tile.selected')).map(item=>item.dataset.treeId);
+  const tree=sharedTreeById(treeId);
+  if(!tree) return;
+  const items=treeIds.flatMap(id=>{ const root=sharedTreeById(id); return root?sharedCopyableTreeItems(root):[]; });
+  const actions=[{label:'เปิดโฟลเดอร์',icon:'folder',run:()=>enterSharedTree(treeId)}];
+  if(items.length) actions.push({label:'คัดลอก'+(treeIds.length>1?'ที่เลือก ':' ')+items.length+' รายการ',icon:'download',run:()=>copySharedTreesContents(null,treeIds)});
+  showFmContextMenu(event,actions);
+}
+function showSharedRootBlankContextMenu(event){
+  if(event.target!==event.currentTarget) return;
+  const treeIds=Array.from(document.querySelectorAll('#sharedFolderRootsGrid .shared-root-tile.selected')).map(item=>item.dataset.treeId);
+  if(!treeIds.length) return;
+  const items=treeIds.flatMap(id=>{ const tree=sharedTreeById(id); return tree?sharedCopyableTreeItems(tree):[]; });
+  const actions=[];
+  if(items.length) actions.push({label:'คัดลอกที่เลือก '+items.length+' รายการ',icon:'download',run:()=>copySharedTreesContents(null,treeIds)});
+  if(actions.length) showFmContextMenu(event,actions);
+}
+let sharedRootMarqueeStart=null;
+function sharedRootStartMarquee(event){
+  if(event.button!==0||event.target!==event.currentTarget) return;
+  const grid=event.currentTarget, rect=grid.getBoundingClientRect();
+  sharedRootMarqueeStart={grid,x:event.clientX-rect.left,y:event.clientY-rect.top};
+  grid.querySelectorAll('.shared-root-tile.selected').forEach(tile=>tile.classList.remove('selected'));
+  const box=grid.querySelector('.mf-marquee');
+  box.style.display='block'; box.style.left=sharedRootMarqueeStart.x+'px'; box.style.top=sharedRootMarqueeStart.y+'px'; box.style.width='0'; box.style.height='0';
+  event.preventDefault();
+}
+function sharedRootUpdateMarquee(event){
+  if(!sharedRootMarqueeStart||sharedRootMarqueeStart.grid!==event.currentTarget) return;
+  const grid=sharedRootMarqueeStart.grid, rect=grid.getBoundingClientRect();
+  const x=event.clientX-rect.left, y=event.clientY-rect.top;
+  const left=Math.min(x,sharedRootMarqueeStart.x), top=Math.min(y,sharedRootMarqueeStart.y), width=Math.abs(x-sharedRootMarqueeStart.x), height=Math.abs(y-sharedRootMarqueeStart.y);
+  Object.assign(grid.querySelector('.mf-marquee').style,{left:left+'px',top:top+'px',width:width+'px',height:height+'px'});
+  const area={left:rect.left+left,right:rect.left+left+width,top:rect.top+top,bottom:rect.top+top+height};
+  grid.querySelectorAll('.shared-root-tile').forEach(tile=>{
+    const r=tile.getBoundingClientRect();
+    tile.classList.toggle('selected',r.right>=area.left&&r.left<=area.right&&r.bottom>=area.top&&r.top<=area.bottom);
+  });
+}
+function sharedRootEndMarquee(){
+  if(!sharedRootMarqueeStart) return;
+  const box=sharedRootMarqueeStart.grid.querySelector('.mf-marquee');
+  if(box) box.style.display='none';
+  sharedRootMarqueeStart=null;
+}
+function sharedBrowserItemClick(event){
+  const grid=event.currentTarget.closest('.fm-grid');
+  const tile=event.currentTarget;
+  if(event.ctrlKey||event.metaKey){ tile.classList.toggle('selected'); return; }
+  const selected=grid.querySelectorAll('.fm-tile.selected');
+  if(tile.classList.contains('selected')&&selected.length>1) return;
+  selected.forEach(item=>item.classList.remove('selected'));
+  tile.classList.add('selected');
+}
+function renderSharedFolderBrowser(){
+  const entries=collectSharedUserEntries(), roots=sharedTreeRoots();
+  if(!roots.length) return '';
+  if(sharedFolderTreeId&&!roots.some(tree=>tree.id===sharedFolderTreeId)){ sharedFolderTreeId=null; sharedFolderPathIds=[]; }
+  let content='';
+  if(!sharedFolderTreeId){
+    const tiles='<div class="fm-grid" id="sharedFolderRootsGrid" oncontextmenu="showSharedRootBlankContextMenu(event)" onmousedown="sharedRootStartMarquee(event)" onmousemove="sharedRootUpdateMarquee(event)" onmouseup="sharedRootEndMarquee()"><div class="mf-marquee" aria-hidden="true"></div>'+roots.map(tree=>{
+      const label=tree===homeDirectoryTree?'Home Directory':'My Folder';
+      const count=entries.filter(item=>item.tree===tree).length;
+      return '<div style="display:flex;flex-direction:column;align-items:stretch;gap:4px;">'
+        +'<button type="button" class="fm-tile shared-root-tile" data-tree-id="'+tree.id+'" style="width:100%;" ondblclick="enterSharedTree(\''+tree.id+'\')" onclick="sharedBrowserItemClick(event)" oncontextmenu="showSharedRootContextMenu(event,\''+tree.id+'\')">'
+        +mfFolderArt()+'<span class="fm-name">'+escapeHtml(label)+'</span>'
+        +'<span style="font-size:9.5px;color:var(--text-dim);">'+escapeHtml(tree.owner||ROLES.student.name)+' · '+count+' รายการแชร์</span>'+unixMetaHtml(tree,tree.owner||ROLES.student.name)+'</button>'
+        +'</div>';
+    }).join('')+'</div>';
+    content=tiles;
+  }else{
+    const tree=sharedTreeById(sharedFolderTreeId);
+    if(!tree){ sharedFolderTreeId=null; sharedFolderPathIds=[]; return renderSharedFolderBrowser(); }
+    if(!sharedFolderPathIds.length||!mfFind(tree,sharedFolderPathIds[sharedFolderPathIds.length-1])) sharedFolderPathIds=[tree.id];
+    const folder=mfFind(tree,sharedFolderPathIds[sharedFolderPathIds.length-1]);
+    const crumbs='<button onclick="sharedFolderTreeId=null;sharedFolderPathIds=[];renderContent()">'+escapeHtml(tree===homeDirectoryTree?'Home Directory':'My Folder')+'</button>'
+      +sharedFolderPathIds.slice(1).map((nodeId,index)=>{
+        const node=mfFind(tree,nodeId);
+        return '<span class="sep">/</span><button onclick="sharedFolderGoTo('+(index+1)+')">'+escapeHtml(node?node.name:'')+'</button>';
+      }).join('');
+    const items=(folder.children||[]).filter(node=>node.perm==='view'||node.perm==='copy');
+    const tiles=items.length?'<div class="fm-grid">'+items.map(node=>{
+      const permission=mfPermLabel(node);
+      return '<button type="button" class="fm-tile" ondblclick="openSharedBrowserNode(\''+tree.id+'\',\''+node.id+'\')" onclick="sharedBrowserItemClick(event)" oncontextmenu="showSharedBrowserContextMenu(event,\''+tree.id+'\',\''+node.id+'\')">'
+        +(node.type==='folder'?mfFolderArt():mfFileArt(node))+'<span class="fm-name">'+escapeHtml(node.name)+'</span>'
+        +'<span style="font-size:9.5px;color:'+permission[1]+';">'+permission[0]+'</span>'+unixMetaHtml(node,tree.owner||ROLES.student.name)+'</button>';
+    }).join('')+'</div>':'<div class="empty-note">ไม่มีรายการที่แชร์ในโฟลเดอร์นี้</div>';
+    content='<div class="crumbs" style="margin-bottom:6px;">'+crumbs+'</div>'+tiles;
+  }
+  return '<div class="section-head" style="margin-top:20px;"><h2>แชร์จาก My Folder</h2></div>'
+    +'<div class="section-sub">เปิดโฟลเดอร์ด้วยดับเบิลคลิก · แสดงเฉพาะรายการที่เจ้าของแชร์</div>'+content;
+}
+function renderAggregated(){
+  return '<div class="section-head"><h2>Shared</h2></div>'
+    +'<div class="section-sub">ไฟล์และโฟลเดอร์ที่เจ้าของแชร์ให้คุณ</div>'
+    +renderSharedFolderBrowser();
+}
+/* ---------- people (student can browse other users) ---------- */
+let peopleQuery='';
+let peopleSelected=null;
+let peopleFolderPathIds=[];
+function otherUsers(){ return USERS.filter(u=>u.t!==ROLES.student.name); }
+function setPeopleQuery(v){
+  peopleQuery=v; renderContent();
+  const inp=document.querySelector('#body .field input');
+  if(inp){ inp.focus(); inp.setSelectionRange(v.length,v.length); }
+}
+function openPerson(id){ if(!requireCurrentUserPermission('x')) return; peopleSelected=id; const tree=folderTreeForUser(id); peopleFolderPathIds=[tree.id]; renderContent(); const c=document.querySelector('.content'); if(c) c.scrollTo({top:0}); }
+function backToPeople(){ peopleSelected=null; peopleFolderPathIds=[]; renderContent(); }
+function peopleGotoFolder(index){ peopleFolderPathIds=peopleFolderPathIds.slice(0,index+1); renderContent(); }
+function renderPeople(){
+  if(peopleSelected) return renderPerson(peopleSelected);
+  const q=peopleQuery.trim().toLowerCase();
+  const list=otherUsers().filter(u=>!q || u.t.toLowerCase().includes(q));
+  const tiles=list.length ? '<div class="fm-grid">'+list.map(u=>
+    '<button type="button" class="fm-tile" onclick="openPerson(\''+u.t+'\')">'
+    +'<div class="fm-user-art" style="color:'+studentColor(u.t)+'">'+icon('user',25)+'</div>'
+    +'<span class="fm-name">'+escapeHtml(u.t)+'</span>'
+    +'<span style="font-size:10px;color:var(--text-dim);">'+escapeHtml(u.s)+(u.demo?' · ตัวอย่าง':'')+'</span></button>'
+  ).join('')+'</div>' : '<div class="empty-note">ไม่พบผู้ใช้ที่ตรงกับคำค้นหา</div>';
+  return '<div class="section-head"><h2>ผู้ใช้อื่น</h2></div>'
+    +'<div class="section-sub">บัญชีอื่นในระบบ '+otherUsers().length+' บัญชี · รวมผู้ใช้ทุกประเภท ยกเว้นบัญชีนี้</div>'
+    +'<div class="field" style="max-width:360px;"><input type="text" placeholder="ค้นหา username..." value="'+escapeHtml(peopleQuery)+'" oninput="setPeopleQuery(this.value)"></div>'
+    +tiles;
+}
+function openPersonSharedNode(id){
+  const tree=sharedTreeByOwner(peopleSelected), node=mfFind(tree,id);
+  if(!canCurrentUserRead()){ showToast('บัญชีนี้ถูกระงับสิทธิ์อ่าน'); return; }
+  if(!node||!['view','copy'].includes(node.perm)) return;
+  if(node.type==='folder'){
+    if(!requireCurrentUserPermission('x')) return;
+    peopleFolderPathIds.push(id); renderContent(); return;
+  }
+  openPersonSharedFile(node);
+}
+function openPersonSharedFile(node){
+  const overlay=document.getElementById('modalOverlay');
+  const titleEl=document.getElementById('modalTitle'), metaEl=document.getElementById('modalMeta'), iconEl=document.getElementById('modalIcon'), bodyEl=document.getElementById('modalBody'), footEl=document.getElementById('modalFoot');
+  const {ic}=mfIconFor(node), ext=(node.name.split('.').pop()||'').toLowerCase();
+  titleEl.textContent=node.name; metaEl.textContent=peopleSelected+' · My Folder'; iconEl.innerHTML=icon(ic,16);
+  if(IMAGE_EXTS.includes(ext)) bodyEl.innerHTML='<div class="empty-note">ตัวอย่างนี้เก็บชื่อไฟล์รูปภาพไว้ แต่ไม่มีข้อมูลภาพให้แสดง</div>';
+  else bodyEl.innerHTML='<pre class="code-box" style="white-space:pre-wrap;overflow-wrap:anywhere;">'+escapeHtml(node.content||'')+'</pre>';
+  footEl.innerHTML=(node.perm==='copy'?'<button class="btn" onclick="copyPersonSharedNode(\''+peopleSelected+'\',\''+node.id+'\')">'+icon('download',14)+' คัดลอก</button>':'')+'<button class="btn ghost" onclick="closeModal()">ปิด</button>';
+  overlay.classList.add('open');
+}
+function copyPersonSharedNode(owner,id){
+  const node=mfFind(sharedTreeByOwner(owner),id);
+  if(!canCurrentUserRead()){ showToast('บัญชีนี้ถูกระงับสิทธิ์อ่าน จึงคัดลอกข้อมูลไม่ได้'); return; }
+  if(!node||node.perm!=='copy'){ showToast('เจ้าของไม่อนุญาตให้คัดลอก'); return; }
+  const copyable=sharedCopyableNode(node);
+  if(copyable) copyFolderNode(copyable);
+}
+function showPersonSharedNodeContextMenu(event,id){
+  const node=mfFind(sharedTreeByOwner(peopleSelected),id);
+  if(!node) return;
+  const actions=[{label:node.type==='folder'?'เปิดโฟลเดอร์':'เปิดไฟล์',icon:node.type==='folder'?'folder':'file',run:()=>openPersonSharedNode(id)}];
+  if(node.perm==='copy') actions.push({label:'คัดลอก',icon:'download',run:()=>copyPersonSharedNode(peopleSelected,id)});
+  showFmContextMenu(event,actions);
+}
+function personSharedItemClick(event){
+  document.querySelectorAll('#personSharedGrid .fm-tile.selected').forEach(tile=>tile.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+}
+function renderPersonSharedFolder(id){
+  const tree=sharedTreeByOwner(id);
+  if(!tree) return '';
+  if(!peopleFolderPathIds.length||!mfFind(tree,peopleFolderPathIds[peopleFolderPathIds.length-1])) peopleFolderPathIds=[tree.id];
+  const folder=mfFind(tree,peopleFolderPathIds[peopleFolderPathIds.length-1]);
+  const crumbs=peopleFolderPathIds.map((nodeId,index)=>{
+    const node=mfFind(tree,nodeId);
+    return (index?'<span class="sep">/</span>':'')+'<button onclick="peopleGotoFolder('+index+')">'+escapeHtml(node?node.name:'')+'</button>';
+  }).join('');
+  const items=(folder.children||[]).filter(node=>node.perm==='view'||node.perm==='copy');
+  const tiles=items.length?'<div class="fm-grid" id="personSharedGrid">'+items.map(node=>{
+    const permission=mfPermLabel(node);
+    return '<button type="button" class="fm-tile" ondblclick="openPersonSharedNode(\''+node.id+'\')" onclick="personSharedItemClick(event)" oncontextmenu="showPersonSharedNodeContextMenu(event,\''+node.id+'\')">'
+      +(node.type==='folder'?mfFolderArt():mfFileArt(node))+'<span class="fm-name">'+escapeHtml(node.name)+'</span>'
+      +'<span style="font-size:9.5px;color:'+permission[1]+';">'+permission[0]+'</span>'+unixMetaHtml(node,id)+'</button>';
+  }).join('')+'</div>':'<div class="empty-note">ไม่มีรายการที่แชร์ในโฟลเดอร์นี้</div>';
+  return '<div class="section-head" style="margin-top:20px;"><h2>My Folder</h2></div>'
+    +'<div class="section-sub">เปิดโฟลเดอร์ด้วยดับเบิลคลิก · แสดงเฉพาะรายการที่เจ้าของแชร์</div>'
+    +'<div class="crumbs" style="margin-bottom:6px;">'+crumbs+'</div>'+tiles;
+}
+function renderPerson(id){
+  const u=USERS.find(x=>x.t===id);
+  const sharedItems=collectSharedUserEntries().filter(item=>item.owner===id);
+  const sharedFolderHtml=sharedItems.length?renderPersonSharedFolder(id):'';
+  return '<button class="back-link" onclick="backToPeople()">'+icon('chevLeft',14)+' กลับไปที่ผู้ใช้อื่น</button>'
+    +'<div class="profile-card"><div class="avatar-lg" style="background:'+studentColor(id)+'">'+id.slice(-2).toUpperCase()+'</div>'
+    +'<div><div class="profile-name">'+escapeHtml(id)+'</div><div class="profile-handle">@'+escapeHtml(id)+' · '+escapeHtml(u?u.s:'student')+'</div>'
+    +'<div class="fact-row">'+icon('share',13)+'<span>แชร์ไว้ '+sharedItems.length+' รายการ</span></div></div></div>'
+    +sharedFolderHtml+(!sharedFolderHtml?'<div class="empty-note">ผู้ใช้นี้ยังไม่มีข้อมูลที่แชร์</div>':'')
+    +'<div class="readonly-note">'+icon('lock',14)+'<span>มุมมองอ่านอย่างเดียว — แก้ไขไม่ได้ · คัดลอกได้เฉพาะรายการที่เจ้าของอนุญาต</span></div>';
+}
+
+/* ---------- admin views ---------- */
+function adminUserHasData(username){
+  const tree=buildAdminUserTree(username);
+  const myFolder=tree.children.find(node=>node.id==='admin_myfolder');
+  if(myFolder&&(myFolder.children||[]).length) return true;
+  function hasNestedData(node){
+    return (node.children||[]).some(child=>child.type==='file'||hasNestedData(child));
+  }
+  return tree.children.some(node=>node.id!=='admin_myfolder'&&hasNestedData(node));
+}
+function adminUsersWithData(){
+  return USERS.filter(user=>{
+    if(!user.s.startsWith('student')) return true;
+    return adminUserHasData(user.t);
+  });
+}
+function renderUsers(){
+  const q=userSearchQuery.trim().toLowerCase();
+  const available=USERS;
+  const filtered=q?available.filter(u=>u.t.toLowerCase().includes(q)||u.s.toLowerCase().includes(q)):available;
+  const visible=userListExpanded?filtered:filtered.slice(0,18);
+  const tiles=visible.map(u=>{
+    const realIdx=USERS.indexOf(u);
+    return '<button type="button" class="fm-tile" onclick="openUserModal('+realIdx+')" oncontextmenu="showAdminUserContextMenu(event,'+realIdx+')">'
+      +'<div class="fm-user-art" aria-hidden="true">'+icon('user',25)+'</div>'
+      +'<span class="fm-name">'+escapeHtml(u.t)+'</span>'
+      +'<span style="font-size:10px;color:var(--text-dim);max-width:100%;overflow-wrap:anywhere;">'+unixModeForUser(u.t)+' · '+unixModeDisplayForUser(u.t)+' · group '+unixGroupForUser(u.t)+'</span></button>';
+  }).join('')||'<div class="empty-note">ไม่พบผู้ใช้ที่ตรงกับคำค้นหา</div>';
+  const showMoreBtn=(!userListExpanded&&filtered.length>visible.length)
+    ?'<button class="btn" style="width:100%;margin-top:10px;" onclick="expandUserList()">'+icon('chevDown',13)+' แสดงเพิ่มเติม ('+(filtered.length-visible.length)+' คน)</button>':'';
+  return '<div class="stat-grid" style="grid-template-columns:1fr;">'
+    +'<div class="stat-box"><div class="n">'+USERS.length+'</div><div class="l">บัญชีทั้งหมด</div></div>'
+    +'</div>'
+    +'<div class="section-head"><h2>บัญชีผู้ใช้</h2></div><div class="section-sub">ค้นหาผู้ใช้แล้วเลือกบัญชีเพื่อดูข้อมูลและจัดการสิทธิ์</div>'
+    +'<div class="field" style="max-width:360px;"><input type="text" placeholder="ค้นหา username หรือบทบาท..." value="'+escapeHtml(userSearchQuery)+'" oninput="setUserSearch(this.value)"></div>'
+    +'<div class="fm-grid">'+tiles+'</div>'+showMoreBtn;
+}
+function showAdminUserContextMenu(event,index){
+  const u=USERS[index];
+  const counts=countAdminUserTree(buildAdminUserTree(u.t));
+  const actions=[{label:'ข้อมูลผู้ใช้',icon:'user',run:()=>openUserModal(index)}];
+  if(counts.files||counts.folders) actions.push({label:'ดูไฟล์ของผู้ใช้',icon:'folder',run:()=>openAdminUserFiles(u.t)});
+  showFmContextMenu(event,actions);
+}
+function setUserSearch(v){ userSearchQuery=v; userListExpanded=true; renderContent(); const inp=document.querySelector('#body .field input'); if(inp){inp.focus(); inp.setSelectionRange(v.length,v.length);} }
+function expandUserList(){ userListExpanded=true; renderContent(); }
+function buildAdminUserTree(username){
+  const root={id:'admin_root',name:'/home/'+username,type:'folder',children:[]};
+  const user=USERS.find(item=>item.t===username);
+  if(user&&user.s.startsWith('student')){
+    root.children.push({id:'admin_myfolder',name:'My Folder',type:'folder',children:folderTreeForUser(username).children});
+  }
+  return root;
+}
+function findAdminTreeNode(node,id){
+  if(!node) return null;
+  if(node.id===id) return node;
+  for(const child of node.children||[]){ const found=findAdminTreeNode(child,id); if(found) return found; }
+  return null;
+}
+function countAdminUserTree(root){
+  const counts={files:0,folders:0};
+  function visit(node){
+    (node.children||[]).forEach(child=>{
+      if(child.type==='folder') counts.folders++;
+      else counts.files++;
+      visit(child);
+    });
+  }
+  visit(root);
+  return counts;
+}
+function openUserModal(i){
+  const u = USERS[i];
+  const overlay=document.getElementById('modalOverlay');
+  const titleEl=document.getElementById('modalTitle'), metaEl=document.getElementById('modalMeta'), iconEl=document.getElementById('modalIcon'), bodyEl=document.getElementById('modalBody'), footEl=document.getElementById('modalFoot');
+  titleEl.textContent = u.t; metaEl.textContent = ''; iconEl.innerHTML = icon('user',16);
+  const restricted=userPermissionRestrictions[u.t]||[];
+  const permissionLabels={r:'อ่าน (r)',w:'เขียน (w)',x:'รัน (x)'};
+  const statusText=restricted.length?'ระงับสิทธิ์: '+restricted.map(p=>permissionLabels[p]).join(', '):'ปกติ · ไม่มีสิทธิ์ถูกระงับ';
+  const counts=countAdminUserTree(buildAdminUserTree(u.t));
+  const unixGroup=unixGroupForUser(u.t);
+  const permissionOptions=[['r','อ่านข้อมูล','อ่าน/เปิดไฟล์และดูข้อมูล'],['w','เขียนข้อมูล','สร้าง แก้ไข เปลี่ยนชื่อ ย้าย และลบไฟล์/โฟลเดอร์'],['x','รัน/เข้าถึง','เข้าถึงโฟลเดอร์และรันไฟล์ที่ปฏิบัติการได้ (เดโมนี้ไม่รันโค้ดจริง)']].map(([value,label,help])=>
+    '<label style="display:flex;align-items:flex-start;gap:9px;padding:7px 2px;cursor:pointer;"><input type="checkbox" name="userPermission" value="'+value+'"'+(restricted.includes(value)?' checked':'')+'><span><b>'+label+' ('+value+')</b><span style="display:block;color:var(--text-dim);font-size:10.5px;">'+help+'</span></span></label>'
+  ).join('');
+  bodyEl.innerHTML = '<div class="list-item"><div class="t">Home Directory</div><div class="s">/home/'+escapeHtml(u.t)+'/ · owner:group '+escapeHtml(u.t)+':'+unixGroup+'</div></div>'
+    +'<div class="list-item"><div class="t">สถานะสิทธิ์</div><div class="s">'+statusText+'</div></div>'
+    +'<div class="list-item"><div class="t">ไฟล์ในระบบ</div><div class="s">'+counts.folders+' โฟลเดอร์ · '+counts.files+' ไฟล์</div></div>'
+    +'<details style="margin-top:12px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid var(--card-border);border-radius:10px;"><summary style="cursor:pointer;color:var(--text);font-size:12px;">เลือกสิทธิ์ที่ต้องการระงับ</summary>'
+    +'<div style="font-size:10.5px;color:var(--text-dim);margin:8px 0;">เลือกเฉพาะสิทธิ์ที่ต้องการระงับ · ไม่เลือกคือไม่ระงับ</div>'+permissionOptions+'</details>';
+  footEl.innerHTML = '<button class="btn danger" onclick="saveUserPermissions('+i+')">'+icon('check',14)+' บันทึกสิทธิ์</button>'
+    +(counts.files||counts.folders ? '<button class="btn" onclick="openAdminUserFiles(\''+u.t+'\')">'+icon('folder',14)+' ดูไฟล์ทั้งหมด</button>' : '')
+    +'<button class="btn ghost" onclick="closeModal()">ปิด</button>';
+  overlay.classList.add('open');
+}
+function saveUserPermissions(i){
+  const selected=Array.from(document.querySelectorAll('input[name="userPermission"]:checked')).map(input=>input.value);
+  userPermissionRestrictions[USERS[i].t]=selected;
+  persistSharedState();
+  renderContent();
+  openUserModal(i);
+  showToast(selected.length?'บันทึกสิทธิ์ที่ระงับแล้ว':'บันทึกแล้ว · ไม่มีการระงับสิทธิ์');
+}
+function openAdminUserFiles(username){
+  adminFilesUser=username;
+  adminFilesTree=buildAdminUserTree(username);
+  const user=USERS.find(item=>item.t===username);
+  adminFilesPathIds=user&&user.s.startsWith('student')?['admin_root','admin_myfolder']:['admin_root'];
+  closeModal();
+  navigate('userFiles');
+}
+function adminOpenFileNode(id){
+  const node=findAdminTreeNode(adminFilesTree,id);
+  if(!node) return;
+  if(node.type==='folder'){ adminFilesPathIds.push(id); renderContent(); return; }
+  mfOpenFileViewer(node);
+}
+function adminCurrentFileFolder(){
+  return findAdminTreeNode(adminFilesTree,adminFilesPathIds[adminFilesPathIds.length-1])||adminFilesTree;
+}
+function adminCreateNode(type,folderId){
+  const parent=folderId?findAdminTreeNode(adminFilesTree,folderId):adminCurrentFileFolder();
+  if(!parent||parent.type!=='folder') return;
+  const overlay=document.getElementById('modalOverlay');
+  document.getElementById('modalTitle').textContent=type==='folder'?'สร้างโฟลเดอร์ใหม่':'สร้างไฟล์ใหม่';
+  document.getElementById('modalMeta').textContent=parent.name;
+  document.getElementById('modalIcon').innerHTML=icon(type==='folder'?'folderPlus':'file',16);
+  document.getElementById('modalBody').innerHTML='<div class="field"><label for="adminCreateName">'+(type==='folder'?'ชื่อโฟลเดอร์':'ชื่อไฟล์')+'</label>'
+    +'<input type="text" id="adminCreateName" autocomplete="off" placeholder="'+(type==='folder'?'เช่น โปรเจกต์':'เช่น main.py หรือ note.txt')+'" value="'+(type==='folder'?'โฟลเดอร์ใหม่':'ไฟล์ใหม่.txt')+'"></div>';
+  document.getElementById('modalFoot').innerHTML='<button class="btn primary" onclick="submitAdminCreate(\''+type+'\',\''+(folderId||parent.id)+'\')">'+icon(type==='folder'?'folderPlus':'file',14)+' '+(type==='folder'?'สร้างโฟลเดอร์':'สร้างไฟล์')+'</button><button class="btn ghost" onclick="closeModal()">ยกเลิก</button>';
+  overlay.classList.add('open');
+  setTimeout(()=>{ const input=document.getElementById('adminCreateName'); if(input){ input.focus(); input.select(); input.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); submitAdminCreate(type,folderId||parent.id); } }; } },30);
+}
+function submitAdminCreate(type,folderId){
+  const parent=findAdminTreeNode(adminFilesTree,folderId);
+  const input=document.getElementById('adminCreateName');
+  let name=input?input.value.trim():'';
+  if(!parent||parent.type!=='folder') return;
+  if(!name||/[\\/]/.test(name)){ showToast('ชื่อไม่ถูกต้อง'); if(input) input.focus(); return; }
+  if(type==='file'&&!name.includes('.')) name+='.txt';
+  if((parent.children||[]).some(child=>child.name.toLowerCase()===name.toLowerCase())){ showToast('มีชื่อนี้อยู่ในโฟลเดอร์แล้ว'); if(input) input.focus(); return; }
+  parent.children=parent.children||[];
+  const created=type==='folder'
+    ? {id:'admin_mf_'+Date.now(),name,type:'folder',perm:'private',children:[]}
+    : {id:'admin_mf_'+Date.now(),name,type:'file',perm:'private',content:''};
+  parent.children.push(created);
+  if(adminFilesUser===ROLES.student.name&&parent.id==='admin_root') homeDirectoryTree.children.push(created);
+  closeModal();
+  renderContent();
+  showToast('สร้าง'+(type==='folder'?'โฟลเดอร์':'ไฟล์')+' "'+name+'" แล้ว');
+}
+function adminFindParent(node,id){
+  for(const child of node.children||[]){
+    if(child.id===id) return node;
+    const parent=adminFindParent(child,id);
+    if(parent) return parent;
+  }
+  return null;
+}
+function adminRenameNode(id){
+  const node=findAdminTreeNode(adminFilesTree,id);
+  if(!node||node.id==='admin_root') return;
+  document.getElementById('modalTitle').textContent='เปลี่ยนชื่อ';
+  document.getElementById('modalMeta').textContent=node.name;
+  document.getElementById('modalIcon').innerHTML=icon('edit',16);
+  document.getElementById('modalBody').innerHTML='<div class="field"><label for="adminRenameName">ชื่อใหม่</label><input type="text" id="adminRenameName" value="'+escapeHtml(node.name)+'"></div>';
+  document.getElementById('modalFoot').innerHTML='<button class="btn primary" onclick="saveAdminRename(\''+id+'\')">'+icon('check',14)+' บันทึก</button><button class="btn ghost" onclick="closeModal()">ยกเลิก</button>';
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(()=>{ const input=document.getElementById('adminRenameName'); if(input){ input.focus(); input.select(); } },30);
+}
+function saveAdminRename(id){
+  const node=findAdminTreeNode(adminFilesTree,id);
+  const input=document.getElementById('adminRenameName');
+  const name=input?input.value.trim():'';
+  if(!node||!name) return;
+  const parent=adminFindParent(adminFilesTree,id);
+  if(!name||/[\\/]/.test(name)||parent&&parent.children.some(child=>child.id!==id&&child.name.toLowerCase()===name.toLowerCase())){ showToast('ชื่อไม่ถูกต้องหรือซ้ำกับรายการเดิม'); return; }
+  node.name=name;
+  closeModal();
+  renderContent();
+  showToast('เปลี่ยนชื่อแล้ว');
+}
+function adminDeleteNode(id){
+  const node=findAdminTreeNode(adminFilesTree,id);
+  const parent=adminFindParent(adminFilesTree,id);
+  if(!node||!parent) return;
+  const index=parent.children.indexOf(node);
+  if(index>-1){ parent.children.splice(index,1); renderContent(); showToast('ลบแล้ว'); }
+}
+function adminApplyNodePerm(node,value){
+  node.perm=value;
+  (node.children||[]).forEach(child=>adminApplyNodePerm(child,value));
+}
+function openAdminNodePermModal(id){
+  const node=findAdminTreeNode(adminFilesTree,id); if(!node) return;
+  const cur=node.perm||'private';
+  const opts=[['private','ส่วนตัว','เฉพาะฉันเท่านั้น'],['view','เพื่อนดูได้อย่างเดียว','เพื่อนเปิดอ่านได้ แต่คัดลอกไม่ได้'],['copy','เพื่อนดูและคัดลอกได้','เพื่อนคัดลอกไปไว้ใน My Folder ของตัวเองได้']];
+  document.getElementById('modalTitle').textContent='ตั้งค่าสิทธิ์';
+  document.getElementById('modalMeta').textContent=node.name;
+  document.getElementById('modalIcon').innerHTML=icon('lock',16);
+  document.getElementById('modalBody').innerHTML=opts.map(o=>
+    '<label style="display:flex;align-items:flex-start;gap:10px;padding:10px 4px;cursor:pointer;"><input type="radio" name="adminPerm" value="'+o[0]+'"'+(cur===o[0]?' checked':'')+'>'
+    +'<span><b>'+o[1]+'</b><span style="display:block;color:var(--text-dim);font-size:11px;">'+o[2]+'</span></span></label>').join('')
+    +(node.type==='folder'?'<div class="hint-note" style="margin-top:10px;">'+icon('alert',14)+'<span>สิทธิ์นี้จะมีผลกับรายการทั้งหมดข้างในด้วย</span></div>':'');
+  document.getElementById('modalFoot').innerHTML='<button class="btn primary" onclick="saveAdminNodePerm(\''+id+'\')">'+icon('check',14)+' บันทึก</button><button class="btn ghost" onclick="closeModal()">ยกเลิก</button>';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function saveAdminNodePerm(id){
+  const node=findAdminTreeNode(adminFilesTree,id);
+  const selected=document.querySelector('input[name="adminPerm"]:checked');
+  if(node&&selected){ adminApplyNodePerm(node,selected.value); closeModal(); renderContent(); showToast('บันทึกสิทธิ์ของ "'+node.name+'" แล้ว'); }
+}
+function adminSelectedNodes(){
+  const folder=adminCurrentFileFolder();
+  if(!folder) return [];
+  return Array.from(document.querySelectorAll('#adminFilesGrid .fm-tile.selected'))
+    .map(tile=>folder.children.find(node=>node.id===tile.dataset.nodeId)).filter(Boolean);
+}
+function adminHandleItemClick(event,id){
+  const tile=event.currentTarget;
+  if(event.ctrlKey||event.metaKey){ tile.classList.toggle('selected'); return; }
+  const selected=document.querySelectorAll('#adminFilesGrid .fm-tile.selected');
+  if(tile.classList.contains('selected')&&selected.length>1) return;
+  selected.forEach(item=>item.classList.remove('selected'));
+  tile.classList.add('selected');
+}
+let adminMarqueeStart=null;
+function adminStartMarquee(event){
+  if(event.button!==0||event.target!==event.currentTarget) return;
+  const grid=event.currentTarget, rect=grid.getBoundingClientRect();
+  adminMarqueeStart={grid,x:event.clientX-rect.left,y:event.clientY-rect.top};
+  grid.querySelectorAll('.fm-tile.selected').forEach(tile=>tile.classList.remove('selected'));
+  const box=grid.querySelector('.mf-marquee');
+  box.style.display='block'; box.style.left=adminMarqueeStart.x+'px'; box.style.top=adminMarqueeStart.y+'px'; box.style.width='0'; box.style.height='0';
+  event.preventDefault();
+}
+function adminUpdateMarquee(event){
+  if(!adminMarqueeStart||adminMarqueeStart.grid!==event.currentTarget) return;
+  const rect=adminMarqueeStart.grid.getBoundingClientRect(), x=event.clientX-rect.left, y=event.clientY-rect.top;
+  const left=Math.min(x,adminMarqueeStart.x), top=Math.min(y,adminMarqueeStart.y), width=Math.abs(x-adminMarqueeStart.x), height=Math.abs(y-adminMarqueeStart.y);
+  const box=adminMarqueeStart.grid.querySelector('.mf-marquee');
+  Object.assign(box.style,{left:left+'px',top:top+'px',width:width+'px',height:height+'px'});
+  const area={left:rect.left+left,right:rect.left+left+width,top:rect.top+top,bottom:rect.top+top+height};
+  adminMarqueeStart.grid.querySelectorAll('.fm-tile').forEach(tile=>{
+    const r=tile.getBoundingClientRect();
+    tile.classList.toggle('selected',r.right>=area.left&&r.left<=area.right&&r.bottom>=area.top&&r.top<=area.bottom);
+  });
+}
+function adminEndMarquee(){
+  if(!adminMarqueeStart) return;
+  const box=adminMarqueeStart.grid.querySelector('.mf-marquee');
+  if(box) box.style.display='none';
+  adminMarqueeStart=null;
+}
+function adminDragStart(event,id){
+  const tile=event.currentTarget;
+  if(!tile.classList.contains('selected')){
+    document.querySelectorAll('#adminFilesGrid .fm-tile.selected').forEach(item=>item.classList.remove('selected'));
+    tile.classList.add('selected');
+  }
+  const ids=Array.from(document.querySelectorAll('#adminFilesGrid .fm-tile.selected')).map(item=>item.dataset.nodeId).filter(Boolean);
+  if(!ids.includes(id)) ids.push(id);
+  event.dataTransfer.effectAllowed='move'; event.dataTransfer.setData('text/plain',JSON.stringify(ids));
+}
+function adminDragEnd(){ document.querySelectorAll('.mf-drop-folder.drop-target').forEach(tile=>tile.classList.remove('drop-target')); }
+function adminDragOver(event,id){
+  const target=findAdminTreeNode(adminFilesTree,id);
+  if(!target||target.type!=='folder') return;
+  event.preventDefault(); event.dataTransfer.dropEffect='move'; event.currentTarget.classList.add('drop-target');
+}
+function adminDragLeave(event){ if(!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.classList.remove('drop-target'); }
+function adminDropOnFolder(event,targetId){
+  const target=findAdminTreeNode(adminFilesTree,targetId);
+  if(!target||target.type!=='folder') return;
+  event.preventDefault(); event.stopPropagation(); event.currentTarget.classList.remove('drop-target');
+  let ids=[]; try{ids=JSON.parse(event.dataTransfer.getData('text/plain')||'[]');}catch(error){return;}
+  const source=adminCurrentFileFolder();
+  if(!source||!ids.length) return;
+  if(ids.includes(targetId)||ids.some(id=>{const node=findAdminTreeNode(source,id);return node&&node.type==='folder'&&findAdminTreeNode(node,targetId);})){showToast('ย้ายโฟลเดอร์เข้าไปในตัวเองไม่ได้');return;}
+  const moving=source.children.filter(node=>ids.includes(node.id));
+  if(!moving.length||target===source) return;
+  for(let i=source.children.length-1;i>=0;i--){if(ids.includes(source.children[i].id)) source.children.splice(i,1);}
+  moving.forEach(node=>{node.name=uniqueFolderName(target,node.name);target.children.push(node);});
+  persistSharedState(); renderContent(); showToast('ย้าย '+moving.length+' รายการเข้า "'+target.name+'" แล้ว');
+}
+function adminDeleteSelected(){
+  const folder=adminCurrentFileFolder(), ids=new Set(adminSelectedNodes().map(node=>node.id));
+  if(!folder||!ids.size) return;
+  const nodes=folder.children.filter(node=>ids.has(node.id));
+  for(let i=folder.children.length-1;i>=0;i--){if(ids.has(folder.children[i].id)) folder.children.splice(i,1);}
+  persistSharedState(); renderContent(); showToast('ลบ '+nodes.length+' รายการแล้ว');
+}
+function showAdminBlankContextMenu(event){
+  if(event.target.closest('input,textarea,button,.fm-context-menu')) return;
+  const actions=[
+    {label:'สร้างโฟลเดอร์',icon:'folderPlus',run:()=>adminCreateNode('folder')},
+    {label:'สร้างไฟล์',icon:'file',run:()=>adminCreateNode('file')}
+  ];
+  const selected=adminSelectedNodes();
+  if(selected.length){
+    actions.unshift({label:'คัดลอกที่เลือก ('+selected.length+')',icon:'download',run:()=>copyFolderNodes(selected)});
+    actions.unshift({label:'ลบที่เลือก ('+selected.length+')',icon:'x',danger:true,run:()=>adminDeleteSelected()});
+  }
+  if(folderClipboard) actions.push({label:'Paste',icon:'download',run:()=>pasteIntoAdminFolder()});
+  showFmContextMenu(event,actions);
+}
+function pasteIntoAdminFolder(){
+  const target=adminCurrentFileFolder(), sources=folderClipboardItems();
+  if(!target||!sources.length) return;
+  const pasted=sources.map(source=>{
+    const node=cloneFolderNode(source);
+    rekeyFolderNode(node,'admin_paste_');
+    node.name=uniqueFolderName(target,node.name);
+    target.children.push(node);
+    return node;
+  });
+  persistSharedState();
+  renderContent();
+  showToast(pasted.length===1?'วาง "'+pasted[0].name+'" แล้ว':'วาง '+pasted.length+' รายการแล้ว');
+}
+function showAdminFileContextMenu(event,id){
+  const node=findAdminTreeNode(adminFilesTree,id);
+  if(!node||node.id==='admin_root') return;
+  const selected=adminSelectedNodes();
+  const group=selected.length>1&&selected.some(item=>item.id===id);
+  const actions=[];
+  if(group){
+    actions.push({label:'คัดลอกที่เลือก ('+selected.length+')',icon:'download',run:()=>copyFolderNodes(selected)});
+    actions.push({label:'ลบที่เลือก ('+selected.length+')',icon:'x',danger:true,run:()=>adminDeleteSelected()});
+  }
+  actions.push({label:'Copy',icon:'download',run:()=>copyFolderNode(node)});
+  actions.push({label:'ตั้งสิทธิ์',icon:'lock',run:()=>mfFind(myFolderTree,id)?openMfPermModal(id):openAdminNodePermModal(id)});
+  actions.push({label:'เปลี่ยนชื่อ',icon:'edit',run:()=>adminRenameNode(id)});
+  actions.push({label:'ลบ',icon:'x',danger:true,run:()=>adminDeleteNode(id)});
+  showFmContextMenu(event,actions);
+}
+function adminGotoFilePath(index){ adminFilesPathIds=adminFilesPathIds.slice(0,index+1); renderContent(); }
+function renderAdminUserFiles(username){
+  if(!adminFilesTree||adminFilesUser!==username) adminFilesTree=buildAdminUserTree(username);
+  const folder=findAdminTreeNode(adminFilesTree,adminFilesPathIds[adminFilesPathIds.length-1])||adminFilesTree;
+  const counts=countAdminUserTree(adminFilesTree);
+  const breadcrumbs=adminFilesPathIds.map((id,index)=>{
+    const node=findAdminTreeNode(adminFilesTree,id);
+    return (index?'<span class="sep">/</span>':'')+'<button onclick="adminGotoFilePath('+index+')">'+escapeHtml(node?node.name:'')+'</button>';
+  }).join('');
+  const visibleChildren=folder.id==='admin_root' ? (folder.children||[]).filter(node=>node.id==='admin_myfolder') : (folder.children||[]);
+  const items=[...visibleChildren].sort((a,b)=>Number(b.type==='folder')-Number(a.type==='folder'));
+  const tiles=items.length?'<div class="fm-grid" id="adminFilesGrid" oncontextmenu="showAdminBlankContextMenu(event)" onmousedown="adminStartMarquee(event)" onmousemove="adminUpdateMarquee(event)" onmouseup="adminEndMarquee(event)"><div class="mf-marquee" aria-hidden="true"></div>'+items.map(node=>
+    '<button type="button" class="fm-tile'+(node.type==='folder'?' mf-drop-folder':'')+'" data-node-id="'+node.id+'" draggable="true" ondragstart="adminDragStart(event,\''+node.id+'\')" ondragend="adminDragEnd(event)" ondragover="adminDragOver(event,\''+node.id+'\')" ondragleave="adminDragLeave(event)" ondrop="adminDropOnFolder(event,\''+node.id+'\')" ondblclick="adminOpenFileNode(\''+node.id+'\')" onclick="adminHandleItemClick(event,\''+node.id+'\')" oncontextmenu="showAdminFileContextMenu(event,\''+node.id+'\')">'
+    +(node.type==='folder'?mfFolderArt():mfFileArt(node))+'<span class="fm-name">'+escapeHtml(node.name)+'</span>'+unixMetaHtml(node,username)+'</button>'
+  ).join('')+'</div>':'<div class="empty-note" oncontextmenu="showAdminBlankContextMenu(event)">โฟลเดอร์นี้ยังไม่มีรายการ</div>';
+  return '<button class="back-link" onclick="navigate(\'users\')">'+icon('chevLeft',14)+' กลับไปที่ผู้ใช้</button>'
+    +'<div class="profile-card"><div class="avatar-lg" style="background:rgba(255,255,255,0.1);">'+icon('user',24)+'</div>'
+    +'<div><div class="profile-name">'+escapeHtml(username)+'</div><div class="profile-handle">group '+unixGroupForUser(username)+' · '+counts.folders+' โฟลเดอร์ · '+counts.files+' ไฟล์</div></div></div>'
+    +'<div class="section-head"><h2>'+escapeHtml(folder.name)+'</h2></div><div class="crumbs" style="margin-bottom:6px;">'+breadcrumbs+'</div>'
+    +'<div class="section-sub">ลากครอบพื้นที่ว่างเพื่อเลือกหลายรายการ แล้วลากไปวางบนโฟลเดอร์เพื่อย้าย · คลิกขวาเพื่อลบชุดที่เลือก · Ctrl+C / Ctrl+V คัดลอกและวาง</div>'+tiles;
+}
+function renderServer(){
+  return '<div class="stat-grid">'
+    +'<div class="stat-box"><div class="n">71%</div><div class="l">พื้นที่ /srv ใช้ไป</div></div>'
+    +'<div class="stat-box"><div class="n">24%</div><div class="l">Server load</div></div>'
+    +'<div class="stat-box"><div class="n">39d</div><div class="l">Uptime</div></div>'
+    +'<div class="stat-box"><div class="n">'+USERS.length+'</div><div class="l">บัญชีผู้ใช้</div></div></div>'
+    +'<div class="section-head"><h2>Storage Layer</h2></div><div class="section-sub">พื้นที่จัดเก็บแยกตามประเภทข้อมูล</div>'
+    +'<div class="row-list">'+STORAGE_LAYER.map(s=>'<div class="row-card" style="cursor:default;"><div class="row-badge" style="background:#8fe3c8;">'+icon('database',16)+'</div><div><div class="row-title mono">'+s.t+'</div></div><div class="row-meta"><div class="m"><b>'+s.s+'</b></div></div></div>').join('')+'</div>'
+    +'<div class="section-head" style="margin-top:22px;"><h2>Shell Scripts</h2></div><div class="section-sub">กดเพื่อดูรายละเอียด</div>'
+    +'<div class="card-grid">'+SHELL_SCRIPTS.map((s,i)=>'<button class="mod-card" onclick="openViewer(\'script\','+i+')"><div class="mod-icon">'+icon('archive',16)+'</div><div><div class="mod-title">'+s.t+'</div><div class="mod-sub">'+s.s+'</div></div></button>').join('')+'</div>';
+}
+function renderBackup(){
+  const rows = LOG_LINES.filter(l=>l.text.includes('backup') || l.text.includes('สำรอง')).map(l=>'<div class="log-line log-'+l.tag+'">'+icon(l.tag==='ok'?'check':l.tag==='warn'?'alert':'x',13)+'<span>'+l.text+'</span></div>').join('');
+  return '<div class="stat-grid">'
+    +'<div class="stat-box"><div class="n">03:00:11</div><div class="l">Backup ล่าสุด</div></div>'
+    +'<div class="stat-box"><div class="n">4.2 GB</div><div class="l">ขนาดล่าสุด</div></div>'
+    +'<div class="stat-box"><div class="n">137 GB</div><div class="l">รวม Backup ทั้งหมด</div></div>'
+    +'<div class="stat-box"><div class="n">sha256</div><div class="l">ตรวจสอบทุกครั้ง</div></div></div>'
+    +'<div class="section-head"><h2>ประวัติ Backup</h2><button class="btn primary" onclick="runBackupNow()">'+icon('archive',13)+' Backup Now</button></div><div class="section-sub">0 3 * * * ทุกวัน · ลบไฟล์เก่าตามนโยบายที่กำหนด</div>'+rows;
+}
+function runBackupNow(){
+  showToast('กำลังรัน backup.sh ผ่าน SSH...');
+  setTimeout(()=>showToast('backup.sh ทำงานสำเร็จ (จำลอง)'), 1200);
+}
+function renderLog(){
+  const chips=[['all','ทั้งหมด'],['ok','สำเร็จ'],['warn','เฝ้าระวัง'],['err','ผิดพลาด']];
+  const filtered = LOG_LINES.filter(l=>logFilter==='all'||l.tag===logFilter);
+  const rows = filtered.map(l=>'<div class="log-line log-'+l.tag+'">'+icon(l.tag==='ok'?'check':l.tag==='warn'?'alert':'x',13)+'<span>'+l.text+'</span></div>').join('');
+  return '<div class="section-head"><h2>System Log</h2></div><div class="section-sub">/opt/student-code-hub/logs</div>'
+    +'<div class="chips">'+chips.map(c=>'<button class="chip-btn'+(logFilter===c[0]?' active':'')+'" onclick="setLogFilter(\''+c[0]+'\')">'+c[1]+'</button>').join('')+'</div>'
+    +(rows||'<div class="empty-note">ไม่มีเหตุการณ์ในหมวดนี้</div>');
+}
+function setLogFilter(f){ logFilter=f; renderContent(); }
+
+/* ---------- settings ---------- */
+let autoBackupOn = true;
+function renderSettings(role){
+  return '<div class="section-head"><h2>ตั้งค่า</h2></div><div class="section-sub">ข้อมูลบัญชีและการแจ้งเตือน</div>'
+    +'<div class="field"><label>ชื่อผู้ใช้</label><input type="text" id="settingsUsername" value="'+role.name+'"></div>'
+    +'<div class="field"><label>อีเมลติดต่อ</label><input type="email" id="settingsEmail" value="'+role.name+'@university.ac.th"></div>'
+    +'<div class="switch-row"><div><div class="l">สำรองข้อมูลอัตโนมัติ</div><div class="s">รัน backup.sh ทุกวันเวลา 03:00</div></div><button class="toggle'+(autoBackupOn?' on':'')+'" id="toggleBackup" onclick="toggleSetting(\'backup\')"><span class="knob"></span></button></div>'
+    +'<button class="btn primary" style="margin-top:10px;" onclick="showToast(\'บันทึกการตั้งค่าแล้ว\')">บันทึกการตั้งค่า</button>';
+}
+function toggleSetting(which){
+  autoBackupOn=!autoBackupOn; document.getElementById('toggleBackup').classList.toggle('on',autoBackupOn);
+}
+
+/* ================= modal / viewer ================= */
+function openViewer(kind, ref){
+  if(kind!=='script') return;
+  const overlay=document.getElementById('modalOverlay');
+  const titleEl=document.getElementById('modalTitle'), metaEl=document.getElementById('modalMeta'), iconEl=document.getElementById('modalIcon'), bodyEl=document.getElementById('modalBody'), footEl=document.getElementById('modalFoot');
+  footEl.innerHTML='';
+  const s=SHELL_SCRIPTS[ref];
+  if(!s) return;
+  titleEl.textContent=s.t; metaEl.textContent='/opt/student-code-hub/scripts'; iconEl.innerHTML=icon('archive',16);
+  bodyEl.innerHTML='<div class="list-item"><div class="t">คำสั่งหลัก</div><div class="s">'+s.s+'</div></div>';
+  footEl.innerHTML='<button class="btn ghost" onclick="closeModal()">ปิด</button>';
+  overlay.classList.add('open');
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+document.getElementById('modalCloseBtn').addEventListener('click',closeModal);
+document.getElementById('modalOverlay').addEventListener('click', e=>{ if(e.target.id==='modalOverlay') closeModal(); });
+document.addEventListener('click',closeFmContextMenu);
+document.addEventListener('mouseup',mfEndMarquee);
+document.addEventListener('mouseup',adminEndMarquee);
+document.addEventListener('keydown',handleMyFolderClipboardShortcut);
+document.addEventListener('keydown',e=>{if(e.key==='Escape') closeFmContextMenu();});
+
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+const SHARED_STATE_KEY='student-code-hub.shared-state.v2';
+let sharedStateHydrating=false;
+function persistSharedState(){
+  try{
+    localStorage.setItem(SHARED_STATE_KEY,JSON.stringify({myFolderTree,userFolderTrees,homeDirectoryTree,userPermissionRestrictions}));
+  }catch(error){ /* local file storage may be unavailable in some browser modes */ }
+}
+function hydrateSharedState(){
+  try{
+    const raw=localStorage.getItem(SHARED_STATE_KEY);
+    if(!raw) return;
+    const saved=JSON.parse(raw);
+    if(saved.myFolderTree) myFolderTree=saved.myFolderTree;
+    if(saved.userFolderTrees) userFolderTrees=saved.userFolderTrees;
+    if(saved.homeDirectoryTree) homeDirectoryTree=saved.homeDirectoryTree;
+    if(saved.userPermissionRestrictions) userPermissionRestrictions=Object.assign(Object.create(null),saved.userPermissionRestrictions);
+    myFolderTree.owner=ROLES.student.name;
+    homeDirectoryTree.owner=ROLES.student.name;
+    Object.keys(userFolderTrees).forEach(username=>{ userFolderTrees[username].owner=username; });
+    if(!mfFind(myFolderTree,myFolderPathIds[myFolderPathIds.length-1])) myFolderPathIds=['mf_root'];
+    adminFilesTree=null;
+  }catch(error){ /* ignore invalid or unavailable browser storage */ }
+}
+window.addEventListener('storage',event=>{
+  if(event.key!==SHARED_STATE_KEY) return;
+  sharedStateHydrating=true;
+  hydrateSharedState();
+  renderContent();
+  sharedStateHydrating=false;
+});
+
+hydrateSharedState();
+seedDemoUsers();
+renderRole();
+</script>
+</body>
+</html>
